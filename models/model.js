@@ -8,14 +8,14 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-        email : String,
-        password : String,
+        email: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
         name : String,
         birth : Date, 
         gender : Boolean // 남자 0, 여자 1
 }, {timestamps: true});
 
-
-const UserModel = mongoose.model('User', UserSchema);
+// 'User'는 collection name, 'UserModel'은 model name, 
+const UserModel = mongoose.model('User', UserSchema, 'User'); 
 
 module.exports = UserModel;
