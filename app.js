@@ -6,12 +6,11 @@ const mongoose = require("mongoose");
 // express 관련 모듈
 const express = require("express");
 const bodyParser = require("body-parser");
-const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const session = require("express-session");
+// const session = require("express-session");
 const cors = require("cors");
 
-const { swaggerUi, specs } = require("./config/swagger"); // 경로 확인
+const { swaggerUi, specs } = require("./config/swagger");
 
 const userRouter = require("./routes/userRouter");
 
@@ -36,6 +35,7 @@ mongoose
 
 app.use(bodyParser.json());
 app.use(cookieParser());
+/*
 app.use(
   session({
     secret: SESSION_SECRET, // 세션 암호화에 사용되는 비밀 키
@@ -44,6 +44,7 @@ app.use(
     cookie: { secure: false }, // HTTPS를 사용할 경우 true로 설정
   })
 );
+*/
 
 app.use(
   cors({
