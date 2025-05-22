@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "default";
 
-const auth = (req, res, next) => {
+const authenticate = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
     return res.status(401).json({ message: "로그인 필요" });
@@ -16,4 +16,4 @@ const auth = (req, res, next) => {
   });
 };
 
-module.exports = auth;
+module.exports = authenticate;

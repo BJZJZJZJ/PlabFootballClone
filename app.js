@@ -12,7 +12,9 @@ const cors = require("cors");
 
 const { swaggerUi, specs } = require("./config/swagger");
 
+// 라우터 객체
 const userRouter = require("./routes/userRouter");
+const matchRoutes = require("./routes/matchRouter");
 
 const app = express();
 
@@ -53,6 +55,8 @@ app.use(
   })
 );
 
+// 라우터 연동
+app.use("/api/match", matchRoutes);
 app.use("/api/user", userRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 

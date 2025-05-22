@@ -3,7 +3,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs"); // 비밀번호 해시암호화 모듈
 
-const auth = require("../utils/auth"); // 인증 미들웨어
+const authenticate = require("../utils/authenticate"); // 인증 미들웨어
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "default";
@@ -161,7 +161,7 @@ router.post("/signin", (req, res) => {
     });
 });
 
-router.get("/get-user", auth, async (req, res) => {
+router.get("/get-user", authenticate, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.user }).select("-password"); // 비밀번호 제외하고 조회
     if (!user) {
