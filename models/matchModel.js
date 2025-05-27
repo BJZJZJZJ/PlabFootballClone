@@ -29,6 +29,12 @@ const MatchSchema = new mongoose.Schema({
     applicationDeadlineMinutesBefore: { type: Number, default: 10 }, // 최대 신청 마감 시간 (분)
   },
 
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   // manager: {
   //   managerId: {
   //     type: mongoose.Schema.Types.ObjectId,

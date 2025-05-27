@@ -9,7 +9,7 @@ const subFieldSchema = new mongoose.Schema({
 
   // count collection 에서 값 가져와서 등록
   // 경기장 ID (고유 식별자)
-  uuid: {
+  id: {
     type: String,
     required: true,
     unique: true,
