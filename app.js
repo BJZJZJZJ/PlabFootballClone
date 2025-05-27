@@ -14,7 +14,8 @@ const { swaggerUi, specs } = require("./config/swagger");
 
 // 라우터 객체
 const userRouter = require("./routes/userRouter");
-const matchRoutes = require("./routes/matchRouter");
+const matchRouter = require("./routes/matchRouter");
+const stadiumRouter = require("./routes/stadiumRouter");
 
 const app = express();
 
@@ -56,8 +57,10 @@ app.use(
 );
 
 // 라우터 연동
-app.use("/api/match", matchRoutes);
 app.use("/api/user", userRouter);
+app.use("/api/match", matchRouter);
+app.use("/api/stadium", stadiumRouter);
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(PORT, () => {
