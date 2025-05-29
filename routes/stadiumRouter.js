@@ -8,6 +8,83 @@ const stadiumController = require("../controllers/stadiumController.js");
 
 /**
  * @swagger
+ * /api/stadium/all:
+ *   get:
+ *     summary: 모든 경기장 목록 조회
+ *     tags: [Stadium]
+ *     responses:
+ *       200:
+ *         description: 모든 경기장 정보 반환 (subField 포함)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   name:
+ *                     type: string
+ *                   location:
+ *                     type: object
+ *                     properties:
+ *                       province:
+ *                         type: string
+ *                       city:
+ *                         type: string
+ *                       district:
+ *                         type: string
+ *                       address:
+ *                         type: string
+ *                   facilities:
+ *                     type: object
+ *                     properties:
+ *                       shower:
+ *                         type: boolean
+ *                       freeParking:
+ *                         type: boolean
+ *                       shoesRental:
+ *                         type: boolean
+ *                       vestRental:
+ *                         type: boolean
+ *                       ballRental:
+ *                         type: boolean
+ *                       drinkSale:
+ *                         type: boolean
+ *                       genderDivision:
+ *                         type: boolean
+ *                   subField:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         fieldName:
+ *                           type: string
+ *                         size:
+ *                           type: object
+ *                           properties:
+ *                             width:
+ *                               type: number
+ *                             height:
+ *                               type: number
+ *                         indoor:
+ *                           type: boolean
+ *                         surface:
+ *                           type: string
+ *                         match:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *       500:
+ *         description: 서버 오류로 조회 실패
+ */
+router.get("/all", stadiumController.getStadium);
+
+/**
+ * @swagger
  * /api/stadium/{id}:
  *   get:
  *     tags: [Stadium]
@@ -79,7 +156,12 @@ router.get("/:id", stadiumController.getStadiumById);
  *                     fieldName:
  *                       type: string
  *                     size:
- *                       type: string
+ *                       type: object
+ *                       properties:
+ *                         width:
+ *                           type: string
+ *                         height:
+ *                           type: string
  *                     indoor:
  *                       type: boolean
  *                     surface:
@@ -90,7 +172,7 @@ router.get("/:id", stadiumController.getStadiumById);
  *       500:
  *         description: 서버 오류
  */
-router.post("/add", authenticate, stadiumController.addStadium);
+router.post("/add", stadiumController.addStadium);
 
 // 서브 필드 추가
 /**
@@ -109,7 +191,12 @@ router.post("/add", authenticate, stadiumController.addStadium);
  *               fieldName:
  *                 type: string
  *               size:
- *                 type: string
+ *                 type: object
+ *                 properties:
+ *                   width:
+ *                     type: string
+ *                   height:
+ *                     type: string
  *               indoor:
  *                 type: boolean
  *               surface:
@@ -130,6 +217,6 @@ router.post("/add", authenticate, stadiumController.addStadium);
  *       500:
  *         description: 서버 오류
  */
-router.post("/subField/add", authenticate, stadiumController.addSubField);
+router.post("/subField/add", stadiumController.addSubField);
 
 module.exports = router;

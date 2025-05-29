@@ -2,6 +2,15 @@ const Stadium = require("../models/stadiumModel"); // DB 모델
 const Counter = require("../models/counterModel"); // 카운터 모델
 const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 
+const getStadium = async (_, res) => {
+  try {
+    const stadiums = await Stadium.find().populate("subField");
+    res.json(stadiums);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "경기장 조회 실패" });
+  }
+};
 
 const getStadiumById = async (req, res) => {
   try {
@@ -140,6 +149,7 @@ const addSubField = async (req, res) => {
 };
 
 module.exports = {
+  getStadium,
   getStadiumById,
   addStadium,
   addSubField,
