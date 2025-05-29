@@ -2,6 +2,7 @@ const Stadium = require("../models/stadiumModel"); // DB 모델
 const Counter = require("../models/counterModel"); // 카운터 모델
 const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 
+
 const getStadiumById = async (req, res) => {
   try {
     const stadium = await Stadium.findOne({

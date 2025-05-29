@@ -7,9 +7,9 @@ const mongoose = require("mongoose");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-// const session = require("express-session");
 const cors = require("cors");
 
+// Swagger 관련 모듈
 const { swaggerUi, specs } = require("./config/swagger");
 
 // 라우터 객체

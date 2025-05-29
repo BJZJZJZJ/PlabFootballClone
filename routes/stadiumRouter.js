@@ -6,12 +6,130 @@ const authenticate = require("../utils/authenticate"); // 인증 미들웨어
 const router = express.Router();
 const stadiumController = require("../controllers/stadiumController.js");
 
+/**
+ * @swagger
+ * /api/stadium/{id}:
+ *   get:
+ *     tags: [Stadium]
+ *     summary: 특정 경기장 조회
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 경기장 ID
+ *     responses:
+ *       200:
+ *         description: 경기장 정보 반환
+ *       404:
+ *         description: 경기장을 찾을 수 없음
+ */
 router.get("/:id", stadiumController.getStadiumById);
 
 // 경기장 등록
+/**
+ * @swagger
+ * /api/stadium/add:
+ *   post:
+ *     tags: [Stadium]
+ *     summary: 경기장과 서브필드를 함께 등록
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               location:
+ *                 type: object
+ *                 properties:
+ *                   province:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   district:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *               facilities:
+ *                 type: object
+ *                 properties:
+ *                   shower:
+ *                     type: boolean
+ *                   freeParking:
+ *                     type: boolean
+ *                   shoesRental:
+ *                     type: boolean
+ *                   vestRental:
+ *                     type: boolean
+ *                   ballRental:
+ *                     type: boolean
+ *                   drinkSale:
+ *                     type: boolean
+ *                   genderDivision:
+ *                     type: boolean
+ *               subFields:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     fieldName:
+ *                       type: string
+ *                     size:
+ *                       type: string
+ *                     indoor:
+ *                       type: boolean
+ *                     surface:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: 등록 성공
+ *       500:
+ *         description: 서버 오류
+ */
 router.post("/add", authenticate, stadiumController.addStadium);
 
 // 서브 필드 추가
+/**
+ * @swagger
+ * /api/stadium/subField/add:
+ *   post:
+ *     summary: 서브필드 추가
+ *     tags: [SubField]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fieldName:
+ *                 type: string
+ *               size:
+ *                 type: string
+ *               indoor:
+ *                 type: boolean
+ *               surface:
+ *                 type: string
+ *               stadiumId:
+ *                 type: string
+ *             required:
+ *               - fieldName
+ *               - size
+ *               - indoor
+ *               - surface
+ *               - stadiumId
+ *     responses:
+ *       201:
+ *         description: 서브필드 등록 성공
+ *       404:
+ *         description: stadium 존재하지 않음
+ *       500:
+ *         description: 서버 오류
+ */
 router.post("/subField/add", authenticate, stadiumController.addSubField);
 
 module.exports = router;
