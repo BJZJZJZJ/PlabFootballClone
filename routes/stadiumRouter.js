@@ -7,9 +7,10 @@ const router = express.Router();
 
 router.get("/:id", async (req, res) => {
   try {
-    const stadium = await Stadium.findOne({ id: req.params.id }).populate(
-      "subField"
-    );
+    const stadium = await Stadium.findOne({
+      id: req.params.id,
+    }).populate("subField");
+
     if (!stadium)
       return res.status(404).json({ error: "경기장을 찾을 수 없습니다." });
     res.json(stadium);
@@ -21,69 +22,67 @@ router.get("/:id", async (req, res) => {
 
 // 경기장 등록
 router.post("/add", authenticate, async (req, res) => {
-  // 트랜잭션을 위한 세션 시작
-  const session = await Stadium.startSession();
-  session.startTransaction();
-
   try {
     const { name, location, facilities, subFields } = req.body;
 
-    // 1. 경기장 ID를 자동 증가시키기 위해 Counter에서 값 증가
+    // 1. stadiumCounter 증가
     const counter = await Counter.findOneAndUpdate(
-      { name: "stadium" }, // stadium 전용 카운터
-      { $inc: { seq: 1 } }, // 1 증가
-      { new: true, upsert: true } // 없으면 생성
+      { name: "stadium" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
     );
-    const stadiumId = counter.seq; // 증가된 stadium 고유 ID
 
-    // 2. 경기장 정보 생성 및 저장
-    const newStadium = new Stadium({
-      id: stadiumId, // 정수형 ID
+    const stadiumId = counter.seq;
+
+    // 2. stadium 생성
+    const stadium = new Stadium({
+      id: stadiumId,
       name,
       location,
       facilities,
+      subField: [],
     });
-    const savedStadium = await newStadium.save({ session });
 
-    // 3. subFields 배열이 있을 경우에만 처리
-    const subFieldDocs = await Promise.all(
-      (subFields || []).map(async (field) => {
-        // subField ID도 Counter에서 자동 증가
-        const subFieldCounter = await Counter.findOneAndUpdate(
-          { name: "subField" },
-          { $inc: { seq: 1 } },
-          { new: true, upsert: true }
-        );
+    const savedStadium = await stadium.save();
 
-        // SubField 문서 생성
-        const subField = new SubField({
-          ...field, // 요청에서 넘어온 필드 내용 (fieldName, size 등)
-          id: subFieldCounter.seq, // 자동 증가된 정수형 ID
-          stadium: savedStadium._id, // stadium 참조 연결
-        });
+    // 3. subFields 있으면 저장 후 stadium에 연결
+    let subFieldIds = [];
 
-        return await subField.save({ session }); // 저장
-      })
-    );
+    if (Array.isArray(subFields) && subFields.length > 0) {
+      const subFieldDocs = await Promise.all(
+        subFields.map(async (field) => {
+          // 각 서브필드마다 고유 ID 생성
+          const subFieldCounter = await Counter.findOneAndUpdate(
+            { name: "subField" },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+          );
 
-    // 4. stadium에 subField들의 ObjectId 연결
-    savedStadium.subField = subFieldDocs.map((f) => f._id);
-    await savedStadium.save({ session });
+          const subFieldId = subFieldCounter.seq;
 
-    // 5. 트랜잭션 성공 → 커밋
-    await session.commitTransaction();
-    session.endSession();
+          const subField = new SubField({
+            ...field,
+            id: subFieldId,
+            stadium: savedStadium._id,
+          });
+
+          const saved = await subField.save();
+          return saved._id;
+        })
+      );
+
+      subFieldIds = subFieldDocs;
+    }
+
+    // 4. stadium에 subField 연결
+    savedStadium.subField = subFieldIds;
+    await savedStadium.save();
 
     res.status(201).json({
-      message: "경기장 및 서브필드 등록 완료",
+      message: "경기장과 서브필드가 성공적으로 등록되었습니다.",
       stadium: savedStadium,
-      subFields: subFieldDocs,
     });
   } catch (err) {
-    // 에러 발생 시 → 트랜잭션 롤백
-    await session.abortTransaction();
-    session.endSession();
-
     console.error(err);
     res.status(500).json({ error: "경기장 등록 실패" });
   }
@@ -91,30 +90,34 @@ router.post("/add", authenticate, async (req, res) => {
 
 // 서브 필드 추가
 router.post("/subField/add", async (req, res) => {
-  const session = await SubField.startSession();
-  session.startTransaction();
-
   try {
-    const { stadiumId, fieldName, size, indoor, surface } = req.body;
+    const { fieldName, size, indoor, surface, stadiumId } = req.body;
 
-    // 1. stadium ObjectId 찾기
-    const stadium = await Stadium.findOne({ id: stadiumId });
+    // 필수값 검증
+    if (!stadiumId) {
+      return res.status(400).json({ error: "stadiumId는 필수입니다." });
+    }
+
+    // 1. stadium 존재 여부 확인
+    const stadium = await Stadium.findById(stadiumId);
     if (!stadium) {
       return res
         .status(404)
-        .json({ error: "해당 ID의 경기장이 존재하지 않습니다." });
+        .json({ error: "해당 stadium을 찾을 수 없습니다." });
     }
 
-    // 2. subField ID 생성 (auto-increment)
+    // 2. Counter에서 subFieldCounter 증가
     const counter = await Counter.findOneAndUpdate(
       { name: "subField" },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
 
-    // 3. SubField 생성
-    const newSubField = new SubField({
-      id: counter.seq,
+    const subFieldId = counter.seq;
+
+    // 3. SubField 생성 및 저장
+    const subField = new SubField({
+      id: subFieldId,
       fieldName,
       size,
       indoor,
@@ -122,24 +125,19 @@ router.post("/subField/add", async (req, res) => {
       stadium: stadium._id,
     });
 
-    const savedSubField = await newSubField.save({ session });
+    const savedSubField = await subField.save();
 
-    // 4. Stadium의 subField 배열에 추가
+    // 4. Stadium 문서에 연결
     stadium.subField.push(savedSubField._id);
-    await stadium.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
+    await stadium.save();
 
     res.status(201).json({
-      message: "서브필드 추가 완료",
+      message: "서브필드가 성공적으로 등록되었습니다.",
       subField: savedSubField,
     });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
     console.error(err);
-    res.status(500).json({ error: "서브필드 등록 중 오류 발생" });
+    res.status(500).json({ error: "서브필드 등록 실패" });
   }
 });
 

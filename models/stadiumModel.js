@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const stadiumSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   name: { type: String, required: true }, // 경기장 명
 
   location: {
@@ -12,11 +18,6 @@ const stadiumSchema = new mongoose.Schema({
 
   // count collection 에서 값 가져와서 등록
   // 경기장 ID (고유 식별자)
-  id: {
-    type: Number,
-    required: true,
-    unique: true,
-  },
 
   // 서브 필드 정보
   subField: [

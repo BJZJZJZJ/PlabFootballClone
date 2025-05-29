@@ -1,42 +1,38 @@
 const Match = require("../models/matchModel"); // DB 모델
+const Counter = require("../models/counterModel"); // 카운터 모델
+const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 const express = require("express");
 const authenticate = require("../utils/authenticate"); // 인증 미들웨어
 const router = express.Router();
 
-/* 
-  조회할 때  subField 정보도 필요로 하고, Stadium 정보도 필요로 함.
-  해당 경우는 어떻게 처리하면 되겠니 
-  내 생각에는 Popluate를 2번 할 것만 같구나
-
-  mongodb 를 replica set으로 구성
-  
-  매치 생성에서 matchId 생성 부분
-*/
-
 router.get("/:id", async (req, res) => {
   try {
-    const match = await Match.findOne({ id: req.params.id }).populate(
-      "subField"
-    );
-    if (!match)
+    const match = await Match.findOne({ id: req.params.id }).populate({
+      path: "subField",
+      populate: {
+        path: "stadium", // subField > stadium 정보도 가져옴
+        model: "Stadium",
+      },
+    });
+
+    if (!match) {
       return res.status(404).json({ error: "경기를 찾을 수 없습니다." });
+    }
+
     res.json(match);
   } catch (err) {
-    console.error(err);
+    console.error("경기 조회 오류:", err);
     res.status(500).json({ error: "경기 조회 실패" });
   }
 });
 
-// 매치 생성 (GET /api/match)
-router.post("/", async (req, res) => {
-  const session = await Match.startSession();
-  session.startTransaction();
-
+// 매치 생성 (GET /api/match/add)
+router.post("/add", async (req, res) => {
   try {
     const {
       dateTime,
       durationMinutes,
-      subFieldId,
+      subFieldId, // 반드시 전달해야 함
       conditions,
       fee,
       participantInfo,
@@ -47,9 +43,12 @@ router.post("/", async (req, res) => {
     if (!subField) {
       return res
         .status(404)
-        .json({ error: "해당 서브필드가 존재하지 않습니다." });
+        .json({ error: "해당 SubField를 찾을 수 없습니다." });
     }
 
+    /*
+
+    // 개선이 필요
     // 2. 매치 시간 겹침 여부 확인
     const startTime = new Date(dateTime);
     const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
@@ -67,30 +66,38 @@ router.post("/", async (req, res) => {
         .status(409)
         .json({ error: "해당 시간대에 이미 예약된 매치가 있습니다." });
     }
+    */
+
+    // 카운터 증가
+    const counter = await Counter.findOneAndUpdate(
+      { name: "match" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const matchId = counter.seq;
 
     // 3. 매치 생성
-    const newMatch = new Match({
+    console.log("subField._Id", subField);
+    const newMatch = await new Match({
+      id: matchId,
       dateTime,
       durationMinutes,
-      subField: subFieldId,
+      subField: subField._id,
       conditions,
       fee,
       participantInfo,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
-    await newMatch.save({ session });
+    const savedMatch = await newMatch.save();
 
-    await session.commitTransaction();
-    session.endSession();
+    // 4. SubField.match 배열에 추가
+    subField.match.push(savedMatch._id);
+    await subField.save();
 
     res
       .status(201)
       .json({ message: "매치가 성공적으로 생성되었습니다.", match: newMatch });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
     console.error(err);
     res.status(500).json({ error: "매치 생성 중 오류 발생" });
   }

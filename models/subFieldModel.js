@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const subFieldSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   fieldName: { type: String, required: true }, // A구장 , B구장 등등
 
   // maximumPlayers: { type: Number, required: true }, // 최대 수용 인원
@@ -9,21 +15,18 @@ const subFieldSchema = new mongoose.Schema({
 
   // count collection 에서 값 가져와서 등록
   // 경기장 ID (고유 식별자)
-  id: {
-    type: Number,
-    required: true,
-    unique: true,
-  },
 
   stadium: {
     ref: "Stadium",
     type: mongoose.Schema.Types.ObjectId,
   },
 
-  match: {
-    ref: "Match",
-    type: mongoose.Schema.Types.ObjectId,
-  },
+  match: [
+    {
+      ref: "Match",
+      type: mongoose.Schema.Types.ObjectId,
+    },
+  ],
 
   size: {
     width: { type: Number, required: true }, // 가로 길이

@@ -3,6 +3,12 @@ const mongoose = require("mongoose");
 const MatchSchema = new mongoose.Schema({
   // title: { type: String, required: true }, // 홈페이지에 보일 제목
 
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   dateTime: { type: Date, required: true }, // 경기 시작 일시
   durationMinutes: { type: Number, required: true }, // 경기 진행 시간 (분)
 
@@ -27,12 +33,6 @@ const MatchSchema = new mongoose.Schema({
     spotsLeft: Number, // 남은 자리 수
     isFull: { type: Boolean, default: false }, // 마감 여부
     applicationDeadlineMinutesBefore: { type: Number, default: 10 }, // 최대 신청 마감 시간 (분)
-  },
-
-  id: {
-    type: Number,
-    required: true,
-    unique: true,
   },
 
   // manager: {
