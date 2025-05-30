@@ -16,7 +16,12 @@ const { swaggerUi, specs } = require("./config/swagger");
 const userRouter = require("./routes/userRouter");
 const matchRouter = require("./routes/matchRouter");
 const stadiumRouter = require("./routes/stadiumRouter");
+const uploadRouter = require("./routes/uploadRouter");
 
+// 파일업로드 모듈
+const path = require("path");
+
+// express 앱 생성
 const app = express();
 
 // dotenv 환경변수
@@ -56,10 +61,14 @@ app.use(
   })
 );
 
+// static 중요
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // 정적 파일 제공
+
 // 라우터 연동
 app.use("/api/user", userRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/stadium", stadiumRouter);
+app.use("/api/upload", uploadRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 

@@ -12,6 +12,11 @@ const getStadium = async (_, res) => {
   }
 };
 
+/* 
+  params 와 query 차이점을 알자
+  params: URL 경로에 포함된 변수 (예: /stadium/:id)
+  query: URL의 ? 뒤에 오는 변수 (예: /stadium?id=123)
+*/
 const getStadiumById = async (req, res) => {
   try {
     const stadium = await Stadium.findOne({
@@ -55,6 +60,7 @@ const addStadium = async (req, res) => {
     // 3. subFields 있으면 저장 후 stadium에 연결
     let subFieldIds = [];
 
+    // subField length 대신 기본값을 설정(null)해서 있는지 없는지만 비교하는 방식도 가능
     if (Array.isArray(subFields) && subFields.length > 0) {
       const subFieldDocs = await Promise.all(
         subFields.map(async (field) => {
@@ -86,7 +92,7 @@ const addStadium = async (req, res) => {
     await savedStadium.save();
 
     res.status(201).json({
-      message: "경기장과 서브필드가 성공적으로 등록되었습니다.",
+      msg: "경기장과 서브필드가 성공적으로 등록되었습니다.",
       stadium: savedStadium,
     });
   } catch (err) {

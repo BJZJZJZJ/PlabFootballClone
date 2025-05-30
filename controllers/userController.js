@@ -69,6 +69,7 @@ const signIn = async (req, res) => {
           secure: false,
           maxAge: 60 * 60 * 1000,
         }); // httpOnly와 secure 옵션 설정
+        // maxAge는 상수로 표현하는 것도 좋음.
 
         res.status(201).json({
           msg: "로그인 성공",
