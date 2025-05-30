@@ -2,6 +2,39 @@ const Match = require("../models/matchModel"); // DB 모델
 const Counter = require("../models/counterModel"); // 카운터 모델
 const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 
+const getMatch = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // 기본 1페이지
+    const limit = 20;
+    const skip = (page - 1) * limit;
+
+    const matches = await Match.find()
+      .sort({ dateTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "subField",
+        populate: {
+          path: "stadium",
+          model: "Stadium",
+        },
+      });
+
+    const total = await Match.countDocuments(); // 전체 매치 개수
+
+    res.json({
+      total,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit),
+      data: matches,
+    });
+  } catch (err) {
+    console.error("경기 조회 오류:", err);
+    res.status(500).json({ error: "경기 조회 실패" });
+  }
+};
+
 const getMatchById = async (req, res) => {
   try {
     const match = await Match.findOne({ id: req.params.id }).populate({
@@ -100,6 +133,7 @@ const addMatch = async (req, res) => {
 };
 
 module.exports = {
+  getMatch,
   getMatchById,
   addMatch,
 };

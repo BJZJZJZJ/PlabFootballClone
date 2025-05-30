@@ -6,6 +6,81 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/match/all:
+ *   get:
+ *     summary: 모든 매치 목록 조회
+ *     tags: [Match]
+ *     responses:
+ *       200:
+ *         description: 모든 매치 정보 반환 (subField 및 stadium 포함)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   dateTime:
+ *                     type: string
+ *                     format: date-time
+ *                   durationMinutes:
+ *                     type: integer
+ *                   conditions:
+ *                     type: string
+ *                   fee:
+ *                     type: integer
+ *                   participantInfo:
+ *                     type: object
+ *                     properties:
+ *                       min:
+ *                         type: integer
+ *                       max:
+ *                         type: integer
+ *                   subField:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       fieldName:
+ *                         type: string
+ *                       size:
+ *                         type: object
+ *                         properties:
+ *                           width:
+ *                             type: number
+ *                           height:
+ *                             type: number
+ *                       indoor:
+ *                         type: boolean
+ *                       surface:
+ *                         type: string
+ *                       stadium:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           name:
+ *                             type: string
+ *                           location:
+ *                             type: object
+ *                             properties:
+ *                               province:
+ *                                 type: string
+ *                               city:
+ *                                 type: string
+ *                               district:
+ *                                 type: string
+ *                               address:
+ *                                 type: string
+ *       500:
+ *         description: 서버 오류로 조회 실패
+ */
+router.get("/all", matchController.getMatch);
+
+/**
+ * @swagger
  * /api/match/{id}:
  *   get:
  *     summary: 특정 ID의 매치 조회
@@ -26,7 +101,6 @@ const router = express.Router();
  *         description: 서버 오류
  */
 router.get("/:id", matchController.getMatchById);
-
 
 /**
  * @swagger
