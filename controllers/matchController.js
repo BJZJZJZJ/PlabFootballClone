@@ -4,14 +4,29 @@ const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 
 const getMatch = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // 기본 1페이지
-    const limit = 20;
-    const skip = (page - 1) * limit;
+    let timeFilter = {};
 
-    const matches = await Match.find()
+    const dateQuery = req.query.date;
+    if (!dateQuery) {
+      return res
+        .status(400)
+        .json({ error: "date 쿼리 파라미터가 필요합니다. (YYYY-MM-DD 형식)" });
+    }
+
+    const localStart = new Date(
+      new Date(`${dateQuery}T00:00:00`).getTime() + 9 * 60 * 60 * 1000
+    );
+    const localEnd = new Date(
+      new Date(`${dateQuery}T23:59:59.999`).getTime() + 9 * 60 * 60 * 1000
+    );
+
+    // UTC로 변환된 Date 객체 사용
+    timeFilter.dateTime = { $gte: localStart, $lte: localEnd };
+    console.log("timeFilter:", timeFilter);
+
+    const matches = await Match.find({ dateTime: timeFilter.dateTime }) // dateTime 필터링
       .sort({ dateTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
-      .skip(skip)
-      .limit(limit)
+      .select("id dateTime subField conditions")
       .populate({
         path: "subField",
         populate: {
@@ -20,13 +35,7 @@ const getMatch = async (req, res) => {
         },
       });
 
-    const total = await Match.countDocuments(); // 전체 매치 개수
-
     res.json({
-      total,
-      page,
-      pageSize: limit,
-      totalPages: Math.ceil(total / limit),
       data: matches,
     });
   } catch (err) {
@@ -56,7 +65,7 @@ const getMatchById = async (req, res) => {
   }
 };
 
-// 매치 생성 (GET /api/match/add)
+// 매치 생성
 const addMatch = async (req, res) => {
   try {
     const {

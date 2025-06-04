@@ -8,7 +8,7 @@ const stadiumController = require("../controllers/stadiumController.js");
 
 /**
  * @swagger
- * /api/stadium/all:
+ * /api/stadium:
  *   get:
  *     summary: 모든 경기장 목록 조회
  *     tags: [Stadium]
@@ -81,7 +81,7 @@ const stadiumController = require("../controllers/stadiumController.js");
  *       500:
  *         description: 서버 오류로 조회 실패
  */
-router.get("/all", stadiumController.getStadium);
+router.get("/", stadiumController.getStadium);
 
 /**
  * @swagger
@@ -107,7 +107,7 @@ router.get("/:id", stadiumController.getStadiumById);
 // 경기장 등록
 /**
  * @swagger
- * /api/stadium/add:
+ * /api/stadium:
  *   post:
  *     tags: [Stadium]
  *     summary: 경기장과 서브필드를 함께 등록
@@ -172,12 +172,12 @@ router.get("/:id", stadiumController.getStadiumById);
  *       500:
  *         description: 서버 오류
  */
-router.post("/add", stadiumController.addStadium);
+router.post("/", stadiumController.addStadium);
 
 // 서브 필드 추가
 /**
  * @swagger
- * /api/stadium/subField/add:
+ * /api/stadium/subField:
  *   post:
  *     summary: 서브필드 추가
  *     tags: [SubField]
@@ -217,6 +217,6 @@ router.post("/add", stadiumController.addStadium);
  *       500:
  *         description: 서버 오류
  */
-router.post("/subField/add", stadiumController.addSubField);
+router.post("/subField", stadiumController.addSubField);
 
 module.exports = router;

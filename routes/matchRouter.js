@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/match/all:
+ * /api/match:
  *   get:
  *     summary: 모든 매치 목록 조회
  *     tags: [Match]
@@ -77,7 +77,7 @@ const router = express.Router();
  *       500:
  *         description: 서버 오류로 조회 실패
  */
-router.get("/all", matchController.getMatch);
+router.get("/", matchController.getMatch);
 
 /**
  * @swagger
@@ -104,7 +104,7 @@ router.get("/:id", matchController.getMatchById);
 
 /**
  * @swagger
- * /api/match/add:
+ * /api/match:
  *   post:
  *     summary: 새 매치 등록
  *     tags: [Match]
@@ -140,6 +140,6 @@ router.get("/:id", matchController.getMatchById);
  *       500:
  *         description: 서버 오류
  */
-router.post("/add", authenticate, matchController.addMatch);
+router.post("/", authenticate, matchController.addMatch);
 
 module.exports = router;

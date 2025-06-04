@@ -35,7 +35,7 @@ const stadiumSchema = new mongoose.Schema({
     vestRental: { type: Boolean, default: false }, // 조끼 대여 여부
     ballRental: { type: Boolean, default: false }, // 공 대여 여부
     drinkSale: { type: Boolean, default: false }, // 음료 판매 여부
-    genderDivision: { type: Boolean, default: false }, // 성별 구분 여부
+    toiletGenderDivision: { type: Boolean, default: false }, // 화장실 성별 구분 여부
   },
 });
 
