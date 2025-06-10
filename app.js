@@ -17,6 +17,7 @@ const userRouter = require("./routes/userRouter");
 const matchRouter = require("./routes/matchRouter");
 const stadiumRouter = require("./routes/stadiumRouter");
 const uploadRouter = require("./routes/uploadRouter");
+const searchRouter = require("./routes/searchRouter");
 
 // 파일업로드 모듈
 const path = require("path");
@@ -69,6 +70,7 @@ app.use("/api/user", userRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/stadium", stadiumRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/search", searchRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
