@@ -59,7 +59,7 @@ const signIn = async (req, res) => {
         }
 
         // jwt 토큰 발급
-        const token = jwt.sign({ email: email }, JWT_SECRET, {
+        const token = jwt.sign({ oId: user._id }, JWT_SECRET, {
           expiresIn: "1h",
         });
 
@@ -90,10 +90,6 @@ const signIn = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.user }).select("-password"); // 비밀번호 제외하고 조회
-    if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-    }
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -110,8 +106,39 @@ const getUser = async (req, res) => {
   
 */
 
+const getUserDetail = async (req, res) => {
+  const { password } = req.body;
+
+  try {
+    const user = await User.findById(req.user);
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password); // 해시된 비밀번호 비교
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ message: "이메일 또는 비밀번호가 잘못되었습니다." });
+    }
+
+    return res.status(200).json({
+      user: {
+        email: user.email,
+        name: user.name,
+        birth: user.birth,
+        gender: user.gender,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "서버 오류" });
+  }
+};
+
 module.exports = {
   signUp,
   signIn,
   getUser,
+  getUserDetail,
 };

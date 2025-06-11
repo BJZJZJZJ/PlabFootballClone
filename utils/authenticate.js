@@ -7,11 +7,11 @@ const authenticate = (req, res, next) => {
     return res.status(401).json({ message: "로그인 필요" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decodedEmail) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: "유효하지 않은 토큰" });
     }
-    req.user = decodedEmail.email;
+    req.user = decoded.oId;
     next();
   });
 };

@@ -12,11 +12,7 @@ const getStadium = async (_, res) => {
   }
 };
 
-/* 
-  params 와 query 차이점을 알자
-  params: URL 경로에 포함된 변수 (예: /stadium/:id)
-  query: URL의 ? 뒤에 오는 변수 (예: /stadium?id=123)
-*/
+
 const getStadiumById = async (req, res) => {
   try {
     const stadium = await Stadium.findOne({
