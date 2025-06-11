@@ -4,8 +4,6 @@ const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 
 const getMatch = async (req, res) => {
   try {
-    let timeFilter = {};
-
     const dateQuery = req.query.date;
     if (!dateQuery) {
       return res
@@ -13,15 +11,32 @@ const getMatch = async (req, res) => {
         .json({ error: "date 쿼리 파라미터가 필요합니다. (YYYY-MM-DD 형식)" });
     }
 
-    const localStart = new Date(
-      new Date(`${dateQuery}T00:00:00`).getTime() + 9 * 60 * 60 * 1000
-    );
-    const localEnd = new Date(
-      new Date(`${dateQuery}T23:59:59.999`).getTime() + 9 * 60 * 60 * 1000
-    );
+    const now = new Date(); // 현재 시각 (UTC 기준)
+    const todayDateStr = now.toISOString().slice(0, 10); // 'YYYY-MM-DD' 형식
 
-    // UTC로 변환된 Date 객체 사용
-    timeFilter.dateTime = { $gte: localStart, $lte: localEnd };
+    // 한국 시간 기준으로 변환
+    const isToday = dateQuery === todayDateStr;
+
+    const KST_OFFSET = 9 * 60 * 60 * 1000;
+    const dateStart = new Date(`${dateQuery}T00:00:00.000Z`);
+    const dateEnd = new Date(`${dateQuery}T23:59:59.999Z`);
+
+    let timeFilter = {};
+    if (isToday) {
+      // 오늘이면 현재 시간 이후부터
+      const currentKST = new Date(now.getTime() + KST_OFFSET);
+      timeFilter.dateTime = {
+        $gte: currentKST,
+        $lte: new Date(dateEnd.getTime()),
+      };
+    } else {
+      // 그 외 날짜면 하루 전체
+      timeFilter.dateTime = {
+        $gte: new Date(dateStart.getTime()),
+        $lte: new Date(dateEnd.getTime()),
+      };
+    }
+
     console.log("timeFilter:", timeFilter);
 
     const matches = await Match.find({ dateTime: timeFilter.dateTime }) // dateTime 필터링
