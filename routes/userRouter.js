@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authenticate = require("../utils/authenticate.js");
+const upload = require("../utils/multer"); // multer 설정 파일
 
 const userController = require("../controllers/userController.js");
 
@@ -91,5 +92,14 @@ router.get("/get-user", authenticate, userController.getUser);
 */
 
 router.post("/get-user-detail", authenticate, userController.getUserDetail);
+
+router.post(
+  "/:id/profile-image",
+  authenticate,
+  upload.single("image"),
+  userController.addProfileImage
+);
+
+router.put("/:id", authenticate, userController.updateProfile);
 
 module.exports = router;

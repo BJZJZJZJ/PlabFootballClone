@@ -136,9 +136,56 @@ const getUserDetail = async (req, res) => {
   }
 };
 
+const addProfileImage = async (req, res) => {
+  const { userId } = req.params;
+  const imageUrl = req.file ? req.file.location : null; // multer를 통해 업로드된 이미지 URL
+
+  if (!imageUrl) {
+    return res.status(400).json({ message: "이미지를 업로드해야 합니다." });
+  }
+
+  try {
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    user.profileImage = `http://cococoa.tplinkdns.com:44445/upload/${req.file.filename}`; // 프로필 이미지 URL 업데이트
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ message: "프로필 이미지가 업데이트되었습니다.", user: user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  const userId = req.params;
+  const data = req.body;
+  try {
+    const user = await User.findOneUpdate({ id: userId }, data, { new: true });
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({
+      message: "프로필이 업데이트되었습니다.",
+      user: user,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
 module.exports = {
   signUp,
   signIn,
   getUser,
   getUserDetail,
+  addProfileImage,
+  updateProfile,
 };

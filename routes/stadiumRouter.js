@@ -219,4 +219,6 @@ router.post("/", stadiumController.addStadium);
  */
 router.post("/subField", stadiumController.addSubField);
 
+router.put("/:id", authenticate, stadiumController.updateStadium);
+
 module.exports = router;

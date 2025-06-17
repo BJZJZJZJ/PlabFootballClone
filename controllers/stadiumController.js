@@ -12,7 +12,6 @@ const getStadium = async (_, res) => {
   }
 };
 
-
 const getStadiumById = async (req, res) => {
   try {
     const stadium = await Stadium.findOne({
@@ -150,9 +149,32 @@ const addSubField = async (req, res) => {
   }
 };
 
+const updateStadium = async (req, res) => {
+  try {
+    const stadiumId = req.params.id;
+    const updateData = req.body;
+
+    const updatedStadium = await Stadium.findOneAndUpdate(
+      { id: stadiumId },
+      updateData,
+      {
+        new: true,
+      }
+    ).populate("subField");
+
+    if (!updatedStadium) {
+      return res.status(404).json({ error: "해당 경기장을 찾을 수 없습니다." });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "경기장 업데이트 중 오류 발생" });
+  }
+};
+
 module.exports = {
   getStadium,
   getStadiumById,
   addStadium,
   addSubField,
+  updateStadium,
 };

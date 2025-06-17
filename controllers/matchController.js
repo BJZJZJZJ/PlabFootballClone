@@ -37,8 +37,6 @@ const getMatch = async (req, res) => {
       };
     }
 
-    console.log("timeFilter:", timeFilter);
-
     const matches = await Match.find({ dateTime: timeFilter.dateTime }) // dateTime 필터링
       .sort({ dateTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
       .select("id dateTime subField conditions")
@@ -156,8 +154,39 @@ const addMatch = async (req, res) => {
   }
 };
 
+const updateMatch = async (req, res) => {
+  try {
+    const matchId = req.params.id;
+    const updateData = req.body;
+
+    const updatedMatch = await Match.findOneAndUpdate(
+      { id: matchId },
+      updateData,
+      {
+        new: true,
+      }
+    ).populate({
+      path: "subField",
+      populate: {
+        path: "stadium",
+        model: "Stadium",
+      },
+    });
+
+    if (!updatedMatch) {
+      return res.status(404).json({ error: "해당 매치를 찾을 수 없습니다." });
+    }
+
+    res.json({ result: updatedMatch });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "매치 업데이트 중 오류 발생" });
+  }
+};
+
 module.exports = {
   getMatch,
   getMatchById,
   addMatch,
+  updateMatch,
 };

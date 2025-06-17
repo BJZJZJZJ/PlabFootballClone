@@ -142,4 +142,44 @@ router.get("/:id", matchController.getMatchById);
  */
 router.post("/", authenticate, matchController.addMatch);
 
+/**
+ * @swagger
+ * /api/match/{id}:
+ *   patch:
+ *     summary: 매치 정보 수정
+ *     tags: [Match]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 수정할 매치 ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dateTime:
+ *                 type: string
+ *                 format: date-time
+ *               subField:
+ *                 type: string
+ *               conditions:
+ *                 type: object
+ *                 additionalProperties: true
+ *     responses:
+ *       200:
+ *         description: 수정된 매치 정보 반환
+ *       404:
+ *         description: 매치를 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
+ */
+router.patch("/match/:id", authenticate, updateMatch);
+
 module.exports = router;
