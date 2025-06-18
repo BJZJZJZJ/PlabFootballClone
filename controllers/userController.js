@@ -60,14 +60,15 @@ const signIn = async (req, res) => {
 
         // jwt 토큰 발급
         const token = jwt.sign({ oId: user._id }, JWT_SECRET, {
-          expiresIn: "1h",
+          expiresIn: "240h",
         });
 
         // 쿠키에 jwt 토큰 저장
         res.cookie("token", token, {
           httpOnly: true,
           secure: false,
-          maxAge: 60 * 60 * 1000,
+          sameSite: "Lax",
+          maxAge: 10 * 24 * 60 * 60 * 1000,
         }); // httpOnly와 secure 옵션 설정
         // maxAge는 상수로 표현하는 것도 좋음.
 
@@ -137,7 +138,6 @@ const getUserDetail = async (req, res) => {
 };
 
 const addProfileImage = async (req, res) => {
-  const { userId } = req.params;
   const imageUrl = req.file ? req.file.location : null; // multer를 통해 업로드된 이미지 URL
 
   if (!imageUrl) {
@@ -145,7 +145,7 @@ const addProfileImage = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ id: userId });
+    const user = await User.findById(req.user);
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
@@ -163,10 +163,9 @@ const addProfileImage = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const userId = req.params;
   const data = req.body;
   try {
-    const user = await User.findOneUpdate({ id: userId }, data, { new: true });
+    const user = await User.findByIdAndUpdate(req.user, data, { new: true });
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }

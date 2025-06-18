@@ -57,7 +57,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "*", // 클라이언트 주소
+    origin: "http://localhost:3000", // 클라이언트 주소
     credentials: true,
   })
 );

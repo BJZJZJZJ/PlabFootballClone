@@ -81,6 +81,7 @@ router.post("/signup", userController.signUp);
 router.post("/signin", userController.signIn);
 
 router.get("/get-user", authenticate, userController.getUser);
+// router.get("/get-user", authenticate, userController.getUser);
 /* 
   유저 정보 들어오는 api는 2개로 만드는게 좋을 것
   1. 통상적으로 사용 될 유저 정보를 줄 api (이메일, 닉네임 등)
@@ -93,13 +94,8 @@ router.get("/get-user", authenticate, userController.getUser);
 
 router.post("/get-user-detail", authenticate, userController.getUserDetail);
 
-router.post(
-  "/:id/profile-image",
-  authenticate,
-  upload.single("image"),
-  userController.addProfileImage
-);
-
 router.put("/:id", authenticate, userController.updateProfile);
+
+
 
 module.exports = router;
