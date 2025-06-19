@@ -8,6 +8,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const https = require("https");
 
 // Swagger 관련 모듈
 const { swaggerUi, specs } = require("./config/swagger");
@@ -21,16 +22,17 @@ const searchRouter = require("./routes/searchRouter");
 
 // 파일업로드 모듈
 const path = require("path");
+const fs = require("fs");
 
 // express 앱 생성
 const app = express();
 
 // dotenv 환경변수
-const SESSION_SECRET = process.env.SESSION_SECRET || "default";
+// const SESSION_SECRET = process.env.SESSION_SECRET || "default";
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/Football";
 const PORT = Number(process.env.PORT) || 44445;
-const CLIENT_URL = process.env.CLIENT_URL;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 mongoose
   .connect(MONGODB_URI)
@@ -41,6 +43,10 @@ mongoose
     console.log("ERROR");
     console.log(e);
   });
+
+const privateKey = fs.readFileSync(__dirname + "/cert/server.key", "utf8");
+const certificate = fs.readFileSync(__dirname + "/cert/server.crt", "utf8");
+const credentials = { key: privateKey, cert: certificate };
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -57,7 +63,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // 클라이언트 주소
+    origin: CLIENT_URL, // 클라이언트 주소
     credentials: true,
   })
 );
@@ -74,6 +80,18 @@ app.use("/api/search", searchRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
+/*
 app.listen(PORT, () => {
   console.log("server START");
+});
+*/
+
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(PORT, () => {
+  console.log(`HTTPS Server running on port ${PORT}}`);
+  console.log("Access your application at: https://localhost/");
+});
+httpsServer.on("error", (err) => {
+  console.error("HTTPS Server error:", err);
 });

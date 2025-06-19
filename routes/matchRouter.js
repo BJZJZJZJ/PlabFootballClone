@@ -180,6 +180,6 @@ router.post("/", authenticate, matchController.addMatch);
  *       500:
  *         description: 서버 오류
  */
-router.patch("/match/:id", authenticate, updateMatch);
+router.patch("/match/:id", authenticate, matchController.updateMatch);
 
 module.exports = router;
