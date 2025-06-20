@@ -9,8 +9,9 @@ const MatchSchema = new mongoose.Schema({
     unique: true,
   },
 
-  dateTime: { type: Date, required: true }, // 경기 시작 일시
+  startTime: { type: Date, required: true }, // 경기 시작 일시
   durationMinutes: { type: Number, required: true }, // 경기 진행 시간 (분)
+  endTime: { type: Date },
 
   subField: {
     ref: "SubField",

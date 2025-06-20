@@ -89,8 +89,10 @@ app.listen(PORT, () => {
 const httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(PORT, () => {
-  console.log(`HTTPS Server running on port ${PORT}}`);
-  console.log("Access your application at: https://localhost/");
+  console.log(`HTTPS Server running on port ${PORT}`);
+  console.log(
+    "Access your application at: https://cococoa.tplinkdns.com:44445"
+  );
 });
 httpsServer.on("error", (err) => {
   console.error("HTTPS Server error:", err);

@@ -98,27 +98,27 @@ const addMatch = async (req, res) => {
         .json({ error: "해당 SubField를 찾을 수 없습니다." });
     }
 
-    /*
-
-    // 개선이 필요
     // 2. 매치 시간 겹침 여부 확인
     const startTime = new Date(dateTime);
-    const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+    const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
 
     const overlappingMatch = await Match.findOne({
-      subField: subFieldId,
-      dateTime: {
-        $lt: endTime,
-        $gte: new Date(startTime.getTime() - durationMinutes * 60000), // 최소한 현재 경기 시간 안에 걸쳐있을 가능성 있는 match 체크
-      },
+      subField: subFieldId, // 특정 subField 내에서만 겹침 확인
+      $and: [
+        { startTime: { $lt: endTime } }, // 기존 경기 시작 시간이 새 경기 종료 시간보다 빨라야 함
+        { endTime: { $gt: startTime } }, // 기존 경기 종료 시간이 새 경기 시작 시간보다 늦어야 함
+      ],
     });
+
+    console.log("Overlapping Match:", overlappingMatch);
+    console.log("New Match Start:", startTime);
+    console.log("New Match End:", endTime);
 
     if (overlappingMatch) {
       return res
         .status(409)
         .json({ error: "해당 시간대에 이미 예약된 매치가 있습니다." });
     }
-    */
 
     // 카운터 증가
     const counter = await Counter.findOneAndUpdate(
@@ -131,7 +131,8 @@ const addMatch = async (req, res) => {
     // 3. 매치 생성
     const newMatch = await new Match({
       id: matchId,
-      dateTime,
+      startTime: startTime,
+      endTime: new Date(startTime.getTime() + durationMinutes * 60 * 1000),
       durationMinutes,
       subField: subField._id,
       conditions,
