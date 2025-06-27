@@ -8,7 +8,7 @@ const router = express.Router();
  * @swagger
  * /api/match:
  *   get:
- *     summary: 모든 매치 목록 조회
+ *     summary: 특정 날짜 모든 매치 목록 조회
  *     tags: [Match]
  *     responses:
  *       200:
@@ -181,5 +181,11 @@ router.post("/", authenticate, matchController.addMatch);
  *         description: 서버 오류
  */
 router.patch("/match/:id", authenticate, matchController.updateMatch);
+
+router.post(
+  "/api/match/reserve/{id}:",
+  authenticate,
+  matchController.reserveMatch
+);
 
 module.exports = router;

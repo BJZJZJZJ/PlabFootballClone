@@ -36,6 +36,13 @@ const MatchSchema = new mongoose.Schema({
     applicationDeadlineMinutesBefore: { type: Number, default: 10 }, // 최대 신청 마감 시간 (분)
   },
 
+  participants: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+
   // manager: {
   //   managerId: {
   //     type: mongoose.Schema.Types.ObjectId,

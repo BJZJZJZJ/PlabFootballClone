@@ -59,15 +59,16 @@ const signIn = async (req, res) => {
         }
 
         // jwt 토큰 발급
+        // expiredIn은 토큰의 수명
         const token = jwt.sign({ oId: user._id }, JWT_SECRET, {
           expiresIn: "240h",
         });
 
         // 쿠키에 jwt 토큰 저장
+        // maxAge는 쿠키의 유효기간. 이중 안전 장치로 사용
         res.cookie("token", token, {
           httpOnly: true,
           secure: false,
-          sameSite: "Lax",
           maxAge: 10 * 24 * 60 * 60 * 1000,
         }); // httpOnly와 secure 옵션 설정
         // maxAge는 상수로 표현하는 것도 좋음.

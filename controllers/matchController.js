@@ -24,7 +24,8 @@ const getMatch = async (req, res) => {
     let timeFilter = {};
     if (isToday) {
       // 오늘이면 현재 시간 이후부터
-      const currentKST = new Date(now.getTime() + KST_OFFSET);
+      //const currentKST = new Date(now.getTime() + KST_OFFSET);
+      const currentKST = new Date(now.getTime());
       timeFilter.dateTime = {
         $gte: currentKST,
         $lte: new Date(dateEnd.getTime()),
@@ -37,9 +38,9 @@ const getMatch = async (req, res) => {
       };
     }
 
-    const matches = await Match.find({ dateTime: timeFilter.dateTime }) // dateTime 필터링
-      .sort({ dateTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
-      .select("id dateTime subField conditions")
+    const matches = await Match.find({ startTime: timeFilter.dateTime }) // dateTime 필터링
+      .sort({ startTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
+      .select("id startTime subField conditions")
       .populate({
         path: "subField",
         populate: {
@@ -109,10 +110,6 @@ const addMatch = async (req, res) => {
         { endTime: { $gt: startTime } }, // 기존 경기 종료 시간이 새 경기 시작 시간보다 늦어야 함
       ],
     });
-
-    console.log("Overlapping Match:", overlappingMatch);
-    console.log("New Match Start:", startTime);
-    console.log("New Match End:", endTime);
 
     if (overlappingMatch) {
       return res
@@ -185,9 +182,55 @@ const updateMatch = async (req, res) => {
   }
 };
 
+const reserveMatch = async (req, res) => {
+  try {
+    const { id } = req.params; // match.id
+    const userId = req.user.id;
+
+    const match = await Match.findOne({ id: id });
+    if (!match)
+      return res.status(404).json({ error: "매치를 찾을 수 없습니다." });
+
+    if (match.participantInfo.isFull)
+      return res.status(409).json({ error: "해당 매치는 마감되었습니다." });
+
+    // 중복 예약 방지
+    if (match.participants.includes(userId)) {
+      return res.status(409).json({ error: "이미 예약된 매치입니다." });
+    }
+
+    // 유저 조회
+    const user = await User.findById(userId);
+    if (!user)
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
+
+    // 매치에 유저 추가
+    match.participants.push(userId);
+    match.participantInfo.currentPlayers += 1;
+    match.participantInfo.spotsLeft =
+      match.participantInfo.maximumPlayers -
+      match.participantInfo.currentPlayers;
+    match.participantInfo.isFull =
+      match.participantInfo.currentPlayers >=
+      match.participantInfo.maximumPlayers;
+
+    await match.save();
+
+    // 유저에 매치 추가
+    user.reservedMatches.push(match._id);
+    await user.save();
+
+    res.status(200).json({ message: "예약 성공", match });
+  } catch (err) {
+    console.error("예약 오류:", err);
+    res.status(500).json({ error: "예약 처리 중 오류" });
+  }
+};
+
 module.exports = {
   getMatch,
   getMatchById,
   addMatch,
   updateMatch,
+  reserveMatch,
 };

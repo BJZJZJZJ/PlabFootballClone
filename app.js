@@ -32,7 +32,7 @@ const app = express();
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/Football";
 const PORT = Number(process.env.PORT) || 44445;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://192.168.1.1:3000";
 
 mongoose
   .connect(MONGODB_URI)
@@ -44,9 +44,10 @@ mongoose
     console.log(e);
   });
 
-const privateKey = fs.readFileSync(__dirname + "/cert/server.key", "utf8");
-const certificate = fs.readFileSync(__dirname + "/cert/server.crt", "utf8");
-const credentials = { key: privateKey, cert: certificate };
+const options = {
+  key: fs.readFileSync("./cert/server.key"),
+  cert: fs.readFileSync("./cert/server.crt"),
+};
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -63,7 +64,7 @@ app.use(
 
 app.use(
   cors({
-    origin: CLIENT_URL, // 클라이언트 주소
+    origin: [CLIENT_URL, "http://localhost:3000", "http://localhost:5173"], // 클라이언트 주소
     credentials: true,
   })
 );
@@ -80,13 +81,12 @@ app.use("/api/search", searchRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-/*
 app.listen(PORT, () => {
   console.log("server START");
 });
-*/
 
-const httpsServer = https.createServer(credentials, app);
+/*
+const httpsServer = https.createServer(options, app);
 
 httpsServer.listen(PORT, () => {
   console.log(`HTTPS Server running on port ${PORT}`);
@@ -97,3 +97,5 @@ httpsServer.listen(PORT, () => {
 httpsServer.on("error", (err) => {
   console.error("HTTPS Server error:", err);
 });
+
+*/
