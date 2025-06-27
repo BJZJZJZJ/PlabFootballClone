@@ -185,7 +185,7 @@ const updateMatch = async (req, res) => {
 const reserveMatch = async (req, res) => {
   try {
     const { id } = req.params; // match.id
-    const userId = req.user.id;
+    const userId = req.user; // JWT에서 추출한 사용자 ObjectID
 
     const match = await Match.findOne({ id: id });
     if (!match)
