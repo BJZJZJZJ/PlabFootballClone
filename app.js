@@ -8,7 +8,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const https = require("https");
 
 // Swagger 관련 모듈
 const { swaggerUi, specs } = require("./config/swagger");
@@ -43,11 +42,6 @@ mongoose
     console.log("ERROR");
     console.log(e);
   });
-
-const options = {
-  key: fs.readFileSync("./cert/server.key"),
-  cert: fs.readFileSync("./cert/server.crt"),
-};
 
 app.use(bodyParser.json());
 app.use(cookieParser());

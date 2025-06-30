@@ -77,7 +77,9 @@ const router = express.Router();
  *       500:
  *         description: 서버 오류로 조회 실패
  */
-router.get("/", matchController.getMatch);
+router.get("/", matchController.getMatchByDate);
+
+router.get("/all", matchController.getAllMatch);
 
 /**
  * @swagger
@@ -140,7 +142,7 @@ router.get("/:id", matchController.getMatchById);
  *       500:
  *         description: 서버 오류
  */
-router.post("/", authenticate, matchController.addMatch);
+router.post("/", matchController.addMatch);
 
 /**
  * @swagger
@@ -180,12 +182,9 @@ router.post("/", authenticate, matchController.addMatch);
  *       500:
  *         description: 서버 오류
  */
-router.patch("/match/:id", authenticate, matchController.updateMatch);
+router.put("/:id", matchController.updateMatch);
+router.delete("/:id", matchController.deleteMatch);
 
-router.post(
-  "/api/match/reserve/{id}:",
-  authenticate,
-  matchController.reserveMatch
-);
+router.post("/reserve/:id", authenticate, matchController.reserveMatch);
 
 module.exports = router;

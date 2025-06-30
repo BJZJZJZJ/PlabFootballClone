@@ -173,6 +173,8 @@ router.get("/:id", stadiumController.getStadiumById);
  *         description: 서버 오류
  */
 router.post("/", stadiumController.addStadium);
+router.put("/:id", stadiumController.updateStadium);
+router.delete("/:id", stadiumController.deleteStadium);
 
 // 서브 필드 추가
 /**
@@ -217,8 +219,10 @@ router.post("/", stadiumController.addStadium);
  *       500:
  *         description: 서버 오류
  */
+router.get("/subField/all", stadiumController.getAllSubField);
 router.post("/subField", stadiumController.addSubField);
-
-router.put("/:id", authenticate, stadiumController.updateStadium);
+router.get("/subField/:id", stadiumController.getSubFieldById);
+router.put("/subField/:id", stadiumController.updateSubField);
+router.delete("/subField/:id", stadiumController.deleteSubField);
 
 module.exports = router;

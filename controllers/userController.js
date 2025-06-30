@@ -13,7 +13,7 @@ async function createHash(pwd) {
 }
 
 const signUp = async (req, res) => {
-  const { email, password, name, birth, gender } = req.body;
+  const { email, password, name, birth, gender, role } = req.body;
   // 이메일 중복확인 후 회원가입 진행
   User.findOne({ email: email })
     .then(async (user) => {
@@ -30,6 +30,7 @@ const signUp = async (req, res) => {
         name: name,
         birth: birth,
         gender: Number(gender), // 남자 0, 여자 1
+        role: role || "user", // 기본
       });
 
       await newUser.save(); // 저장도 await를 사용하여 동기 처리
@@ -75,7 +76,6 @@ const signIn = async (req, res) => {
 
         res.status(201).json({
           msg: "로그인 성공",
-          token: token,
         });
       } else {
         // 이메일이 존재하지 않는 경우
@@ -90,8 +90,18 @@ const signIn = async (req, res) => {
     });
 };
 
+const logout = (req, res) => {
+  // 로그아웃은 쿠키를 삭제하는 것으로 처리
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false, // HTTPS를 사용하는 경우 true로 설정
+  });
+  res.status(200).json({ msg: "로그아웃 성공" });
+};
+
 const getUser = async (req, res) => {
   try {
+    // user값 살짝
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -151,7 +161,7 @@ const addProfileImage = async (req, res) => {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
 
-    user.profileImage = `http://cococoa.tplinkdns.com:44445/upload/${req.file.filename}`; // 프로필 이미지 URL 업데이트
+    user.profileImage = req.file.filename; // 프로필 이미지 URL 업데이트
     await user.save();
 
     return res
@@ -165,8 +175,9 @@ const addProfileImage = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   const data = req.body;
+  const id = req.params.id || req.user; // URL 파라미터에서 ID를 가져오거나, 인증된 사용자 ID 사용
   try {
-    const user = await User.findByIdAndUpdate(req.user, data, { new: true });
+    const user = await User.findByIdAndUpdate(id, data, { new: true });
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
@@ -181,6 +192,47 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "-password -__v"); // 비밀번호와 버전 정보 제외
+
+    return res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+const getUserById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id, "-password -__v"); // 비밀번호와 버전 정보 제외
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({ message: "사용자가 삭제되었습니다." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
 module.exports = {
   signUp,
   signIn,
@@ -188,4 +240,8 @@ module.exports = {
   getUserDetail,
   addProfileImage,
   updateProfile,
+  logout,
+  getAllUsers,
+  getUserById,
+  deleteUser,
 };

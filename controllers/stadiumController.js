@@ -1,6 +1,7 @@
 const Stadium = require("../models/stadiumModel"); // DB 모델
 const Counter = require("../models/counterModel"); // 카운터 모델
 const SubField = require("../models/subFieldModel"); // 서브 필드 모델
+const Match = require("../models/matchModel"); // 매치 모델
 
 const getStadium = async (_, res) => {
   try {
@@ -14,9 +15,7 @@ const getStadium = async (_, res) => {
 
 const getStadiumById = async (req, res) => {
   try {
-    const stadium = await Stadium.findOne({
-      id: req.params.id,
-    }).populate("subField");
+    const stadium = await Stadium.findById(req.params.id).populate("subField");
 
     if (!stadium)
       return res.status(404).json({ error: "경기장을 찾을 수 없습니다." });
@@ -151,11 +150,10 @@ const addSubField = async (req, res) => {
 
 const updateStadium = async (req, res) => {
   try {
-    const stadiumId = req.params.id;
     const updateData = req.body;
 
-    const updatedStadium = await Stadium.findOneAndUpdate(
-      { id: stadiumId },
+    const updatedStadium = await Stadium.findByIdAndUpdate(
+      req.params.id,
       updateData,
       {
         new: true,
@@ -165,9 +163,125 @@ const updateStadium = async (req, res) => {
     if (!updatedStadium) {
       return res.status(404).json({ error: "해당 경기장을 찾을 수 없습니다." });
     }
+
+    res.json(updatedStadium);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "경기장 업데이트 중 오류 발생" });
+  }
+};
+
+const getSubFieldById = async (req, res) => {
+  try {
+    const subField = await SubField.findById(req.params.id).populate("stadium");
+
+    if (!subField) {
+      return res.status(404).json({ error: "서브필드를 찾을 수 없습니다." });
+    }
+
+    res.json(subField);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "서브필드 조회 실패" });
+  }
+};
+
+const updateSubField = async (req, res) => {
+  try {
+    const subFieldId = req.params.id;
+    const updateData = req.body;
+
+    const updatedSubField = await SubField.findByIdAndUpdate(
+      subFieldId,
+      updateData,
+      { new: true }
+    ).populate("stadium");
+
+    if (!updatedSubField) {
+      return res
+        .status(404)
+        .json({ error: "해당 서브필드를 찾을 수 없습니다." });
+    }
+
+    res.json(updatedSubField);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "서브필드 업데이트 중 오류 발생" });
+  }
+};
+
+const deleteStadium = async (req, res) => {
+  try {
+    const stadiumId = req.params.id;
+
+    // 1. stadium 찾기 (id는 custom string, _id가 아님)
+    const stadium = await Stadium.findById(stadiumId);
+    if (!stadium) {
+      return res.status(404).json({ error: "해당 경기장을 찾을 수 없습니다." });
+    }
+
+    // 2. 연결된 subField들 조회
+    const subFields = await SubField.find({ stadium: stadium._id });
+
+    // 3. 각 subField에 연결된 match 삭제
+    const matchDeletePromises = subFields.map((sub) =>
+      Match.deleteMany({ subField: sub._id })
+    );
+    await Promise.all(matchDeletePromises);
+
+    // 4. subField 삭제
+    await SubField.deleteMany({ stadium: stadium._id });
+
+    // 5. stadium 삭제
+    await Stadium.deleteOne({ _id: stadium._id });
+
+    res.json({ message: "경기장과 관련된 모든 데이터가 삭제되었습니다." });
+  } catch (err) {
+    console.error("경기장 삭제 오류:", err);
+    res.status(500).json({ error: "경기장 삭제 중 오류 발생" });
+  }
+};
+
+const deleteSubField = async (req, res) => {
+  try {
+    const subFieldId = req.params.id;
+
+    // 1. subField 조회
+    const subField = await SubField.findById(subFieldId);
+    if (!subField) {
+      return res
+        .status(404)
+        .json({ error: "해당 서브필드를 찾을 수 없습니다." });
+    }
+
+    // 2. 연결된 match 삭제
+    await Match.deleteMany({ subField: subField._id });
+
+    // 3. stadium.subField 배열에서 제거
+    if (subField.stadium) {
+      await Stadium.updateOne(
+        { _id: subField.stadium },
+        { $pull: { subField: subField._id } }
+      );
+    }
+
+    // 4. subField 자체 삭제
+    await SubField.deleteOne({ _id: subField._id });
+
+    res.json({ message: "서브필드 및 관련 매치가 삭제되었습니다." });
+  } catch (err) {
+    console.error("서브필드 삭제 오류:", err);
+    res.status(500).json({ error: "서브필드 삭제 중 오류 발생" });
+  }
+};
+
+const getAllSubField = async (_, res) => {
+  try {
+    const subFields = await SubField.find().populate("stadium");
+    res.json(subFields);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "서브필드 조회 실패" });
   }
 };
 
@@ -175,6 +289,12 @@ module.exports = {
   getStadium,
   getStadiumById,
   addStadium,
-  addSubField,
   updateStadium,
+  deleteStadium,
+
+  getAllSubField,
+  addSubField,
+  getSubFieldById,
+  updateSubField,
+  deleteSubField,
 };

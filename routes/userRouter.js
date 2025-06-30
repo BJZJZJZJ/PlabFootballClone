@@ -79,23 +79,15 @@ router.post("/signup", userController.signUp);
 
 // jwt에는 절대 개인정보를 넣지 말것
 router.post("/signin", userController.signIn);
+router.get("/signout", userController.logout);
 
 router.get("/get-user", authenticate, userController.getUser);
-// router.get("/get-user", authenticate, userController.getUser);
-/* 
-  유저 정보 들어오는 api는 2개로 만드는게 좋을 것
-  1. 통상적으로 사용 될 유저 정보를 줄 api (이메일, 닉네임 등)
-  2. 유저 정보 수정할 때 사용할 api (디테일 한 정보)
-
-  token만 활용해서 정보를 받을 때는 확실하게 인증하기 애매함
-  따라서 token + 비밀번호 / token + 이메일 과 같이 2개의 정보를 같이 확인하여 검증하도록 하는게 좋음
-  
-*/
 
 router.post("/get-user-detail", authenticate, userController.getUserDetail);
 
-router.put("/:id", authenticate, userController.updateProfile);
-
-
+router.get("/", userController.getAllUsers);
+router.get("/:id", userController.getUserById);
+router.put("/:id", userController.updateProfile);
+router.delete("/:id", userController.deleteUser);
 
 module.exports = router;
