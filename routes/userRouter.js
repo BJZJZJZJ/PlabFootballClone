@@ -86,8 +86,8 @@ router.get("/get-user", authenticate, userController.getUser);
 router.post("/get-user-detail", authenticate, userController.getUserDetail);
 
 router.get("/", userController.getAllUsers);
-router.get("/:id", userController.getUserById);
-router.put("/:id", userController.updateProfile);
-router.delete("/:id", userController.deleteUser);
+router.get("/:id", authenticate, userController.getUserById);
+router.put("/:id", authenticate, userController.updateProfile);
+router.delete("/:id", authenticate, userController.deleteUser);
 
 module.exports = router;

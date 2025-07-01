@@ -185,6 +185,4 @@ router.post("/", matchController.addMatch);
 router.put("/:id", matchController.updateMatch);
 router.delete("/:id", matchController.deleteMatch);
 
-router.post("/reserve/:id", authenticate, matchController.reserveMatch);
-
 module.exports = router;

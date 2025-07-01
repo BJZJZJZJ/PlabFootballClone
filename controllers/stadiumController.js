@@ -173,7 +173,9 @@ const updateStadium = async (req, res) => {
 
 const getSubFieldById = async (req, res) => {
   try {
-    const subField = await SubField.findById(req.params.id).populate("stadium");
+    const subField = await SubField.findById(req.params.id)
+      .populate("stadium")
+      .populate("match");
 
     if (!subField) {
       return res.status(404).json({ error: "서브필드를 찾을 수 없습니다." });

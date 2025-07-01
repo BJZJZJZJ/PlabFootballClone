@@ -15,79 +15,87 @@ async function createHash(pwd) {
 const signUp = async (req, res) => {
   const { email, password, name, birth, gender, role } = req.body;
   // 이메일 중복확인 후 회원가입 진행
-  User.findOne({ email: email })
-    .then(async (user) => {
-      if (user) {
-        return res.status(401).json({ msg: "이미 존재하는 이메일입니다." });
-      }
 
-      // 비밀번호 해시화(동기 처리 필수)
-      const hashedPassword = await createHash(password);
+  try {
+    const user = await User.findOne({ email: email });
 
-      const newUser = new User({
-        email: email,
-        password: hashedPassword,
-        name: name,
-        birth: birth,
-        gender: Number(gender), // 남자 0, 여자 1
-        role: role || "user", // 기본
-      });
+    if (user) {
+      return res.status(401).json({ msg: "이미 존재하는 이메일입니다." });
+    }
 
-      await newUser.save(); // 저장도 await를 사용하여 동기 처리
+    // 비밀번호 해시화(동기 처리 필수)
+    const hashedPassword = await createHash(password);
 
-      res.status(201).json({
-        msg: "성공적으로 회원가입 되었습니다.",
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ msg: "서버 오류" });
+    const newUser = new User({
+      email: email,
+      password: hashedPassword,
+      name: name,
+      birth: birth,
+      gender: Number(gender), // 남자 0, 여자 1
+      role: role || "user", // 기본
     });
+
+    await newUser.save(); // 저장도 await를 사용하여 동기 처리
+
+    res.status(201).json({
+      msg: "성공적으로 회원가입 되었습니다.",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "서버 오류" });
+  }
 };
 
 // jwt에는 절대 개인정보를 넣지 말것
 const signIn = async (req, res) => {
   const { email, password } = req.body;
-  User.findOne({ email: email })
-    .then(async (user) => {
-      if (user) {
-        const isMatch = await bcrypt.compare(password, user.password); // 해시된 비밀번호 비교
 
-        if (!isMatch) {
-          // 비밀번호가 틀린 경우
-          res.status(401).json({ msg: "이메일 또는 비밀번호가 틀렸습니다." });
-          return;
-        }
+  try {
+    const user = await User.findOne({ email: email });
 
-        // jwt 토큰 발급
-        // expiredIn은 토큰의 수명
-        const token = jwt.sign({ oId: user._id }, JWT_SECRET, {
-          expiresIn: "240h",
-        });
+    if (!user) {
+      // 이메일이 존재하지 않는 경우
+      return res
+        .status(401)
+        .json({ msg: "이메일 또는 비밀번호가 틀렸습니다." });
+    }
 
-        // 쿠키에 jwt 토큰 저장
-        // maxAge는 쿠키의 유효기간. 이중 안전 장치로 사용
-        res.cookie("token", token, {
-          httpOnly: true,
-          secure: false,
-          maxAge: 10 * 24 * 60 * 60 * 1000,
-        }); // httpOnly와 secure 옵션 설정
-        // maxAge는 상수로 표현하는 것도 좋음.
+    const isMatch = await bcrypt.compare(password, user.password); // 해시된 비밀번호 비교
 
-        res.status(201).json({
-          msg: "로그인 성공",
-        });
-      } else {
-        // 이메일이 존재하지 않는 경우
-        return res
-          .status(401)
-          .json({ msg: "이메일 또는 비밀번호가 틀렸습니다." });
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ msg: "서버 오류" });
+    if (!isMatch) {
+      // 비밀번호가 틀린 경우
+      res.status(401).json({ msg: "이메일 또는 비밀번호가 틀렸습니다." });
+      return;
+    }
+
+    // jwt 토큰 발급
+    // expiredIn은 토큰의 수명
+    const token = jwt.sign({ oId: user._id }, JWT_SECRET, {
+      expiresIn: "240h",
     });
+
+    // 쿠키에 jwt 토큰 저장
+    // maxAge는 쿠키의 유효기간. 이중 안전 장치로 사용
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 10 * 24 * 60 * 60 * 1000,
+    }); // httpOnly와 secure 옵션 설정
+    // maxAge는 상수로 표현하는 것도 좋음.
+
+    res.status(201).json({
+      msg: "로그인 성공",
+      data: {
+        user: {
+          role: user.role,
+          id: user._id,
+        },
+      }, // 쿠키에 저장된 토큰 정보
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "서버 오류" });
+  }
 };
 
 const logout = (req, res) => {
@@ -101,8 +109,14 @@ const logout = (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    // user값 살짝
-    res.json(user);
+    const user = await User.findById(req.user, "-password -__v"); // 비밀번호와 버전 정보 제외
+
+    res.json({
+      user: {
+        id: user._id,
+        role: user.role,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "서버 오류" });

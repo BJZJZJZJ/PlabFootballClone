@@ -67,5 +67,14 @@ const MatchSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+MatchSchema.pre("save", function (next) {
+  this.participantInfo.currentPlayers = this.participants.length;
+  this.participantInfo.spotsLeft =
+    this.participantInfo.maximumPlayers - this.participants.length;
+  this.participantInfo.isFull =
+    this.participants.length >= this.participantInfo.maximumPlayers;
+  next();
+});
+
 const MatchModel = mongoose.model("Match", MatchSchema, "Match");
 module.exports = MatchModel;

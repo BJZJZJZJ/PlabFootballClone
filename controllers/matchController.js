@@ -293,51 +293,6 @@ const deleteMatch = async (req, res) => {
   }
 };
 
-const reserveMatch = async (req, res) => {
-  try {
-    const { id } = req.params; // match.id
-    const userId = req.user; // JWT에서 추출한 사용자 ObjectID
-
-    const match = await Match.findOne({ id: id });
-    if (!match)
-      return res.status(404).json({ error: "매치를 찾을 수 없습니다." });
-
-    if (match.participantInfo.isFull)
-      return res.status(409).json({ error: "해당 매치는 마감되었습니다." });
-
-    // 중복 예약 방지
-    if (match.participants.includes(userId)) {
-      return res.status(409).json({ error: "이미 예약된 매치입니다." });
-    }
-
-    // 유저 조회
-    const user = await User.findById(userId);
-    if (!user)
-      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
-
-    // 매치에 유저 추가
-    match.participants.push(userId);
-    match.participantInfo.currentPlayers += 1;
-    match.participantInfo.spotsLeft =
-      match.participantInfo.maximumPlayers -
-      match.participantInfo.currentPlayers;
-    match.participantInfo.isFull =
-      match.participantInfo.currentPlayers >=
-      match.participantInfo.maximumPlayers;
-
-    await match.save();
-
-    // 유저에 매치 추가
-    user.reservedMatches.push(match._id);
-    await user.save();
-
-    res.status(200).json({ message: "예약 성공", match });
-  } catch (err) {
-    console.error("예약 오류:", err);
-    res.status(500).json({ error: "예약 처리 중 오류" });
-  }
-};
-
 module.exports = {
   getAllMatch,
   getMatchByDate,
@@ -345,6 +300,4 @@ module.exports = {
   addMatch,
   updateMatch,
   deleteMatch,
-
-  reserveMatch,
 };
