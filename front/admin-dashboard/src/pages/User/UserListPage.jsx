@@ -59,9 +59,7 @@ function UserListPage() {
             </th>
             <th style={{ padding: "8px", border: "1px solid #ddd" }}>성별</th>
             <th style={{ padding: "8px", border: "1px solid #ddd" }}>역할</th>
-            <th style={{ padding: "8px", border: "1px solid #ddd" }}>
-              예약된 매치
-            </th>
+            <th style={{ padding: "8px", border: "1px solid #ddd" }}>예약 </th>
             <th style={{ padding: "8px", border: "1px solid #ddd" }}>
               Actions
             </th>
@@ -89,10 +87,12 @@ function UserListPage() {
                 </td>
                 <td style={{ padding: "8px", border: "1px solid #ddd" }}>
                   <ul style={styles.ulContainer}>
-                    {user.reservedMatches.length >= 0
-                      ? user.reservedMatches.map((match) => (
-                          <li key={match._id} style={styles.liItem}>
-                            <Link to={`/matches/edit/${match}`}>{match}</Link>
+                    {user.reservation.length >= 0
+                      ? user.reservation.map((reserv) => (
+                          <li key={reserv._id} style={styles.liItem}>
+                            <Link to={`/reservation/edit/${reserv}`}>
+                              {reserv}
+                            </Link>
                           </li>
                         ))
                       : "asf"}

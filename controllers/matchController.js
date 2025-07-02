@@ -1,6 +1,8 @@
 const Match = require("../models/matchModel"); // DB 모델
 const Counter = require("../models/counterModel"); // 카운터 모델
 const SubField = require("../models/subFieldModel"); // 서브 필드 모델
+const Reservation = require("../models/reservationModel");
+const User = require("../models/userModel");
 
 const getMatchByDate = async (req, res) => {
   try {
@@ -177,13 +179,31 @@ const addMatch = async (req, res) => {
 const updateMatch = async (req, res) => {
   try {
     const matchId = req.params.id;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
-    // 업데이트 전 기존 매치 문서 조회 (subField 변경 감지용)
+    // 업데이트 전 기존 매치 문서 조회
     const originalMatch = await Match.findById(matchId);
     if (!originalMatch) {
       return res.status(404).json({ error: "해당 매치를 찾을 수 없습니다." });
     }
+
+    const newCurrentPlayers = originalMatch.participants.length;
+
+    // maximumPlayers는 updateData에 새롭게 제공될 수도 있고, 아니면 기존 값을 사용합니다.
+    const maximumPlayers =
+      updateData.participantInfo?.maximumPlayers !== undefined // updateData에 maximumPlayers가 명시적으로 제공된 경우
+        ? updateData.participantInfo.maximumPlayers
+        : originalMatch.participantInfo.maximumPlayers; // 그렇지 않으면 기존 매치의 값 사용
+
+    // participantInfo 객체를 생성하거나 기존 객체에 값을 할당합니다.
+    // 이렇게 하면 findByIdAndUpdate가 participantInfo를 하나의 중첩된 객체로 인식하여 업데이트합니다.
+    updateData.participantInfo = {
+      ...originalMatch.participantInfo.toObject(), // 기존 participantInfo 값을 복사 (선택 사항이지만 안전함)
+      ...updateData.participantInfo, // req.body에서 온 participantInfo 값들
+      currentPlayers: newCurrentPlayers,
+      spotsLeft: maximumPlayers - newCurrentPlayers,
+      isFull: newCurrentPlayers >= maximumPlayers,
+    };
 
     const updatedMatch = await Match.findByIdAndUpdate(matchId, updateData, {
       new: true,
@@ -199,6 +219,8 @@ const updateMatch = async (req, res) => {
       return res.status(404).json({ error: "해당 매치를 찾을 수 없습니다." });
     }
 
+    /*
+    // subField가 변경 될 일은 없어요
     // subField가 변경되었는지 확인하고 관련 로직 수행
     if (
       updateData.subField &&
@@ -229,6 +251,7 @@ const updateMatch = async (req, res) => {
         // 필요에 따라 오류 응답을 보낼 수도 있습니다.
       }
     }
+    */
 
     res.json({ result: updatedMatch });
   } catch (err) {
@@ -238,58 +261,59 @@ const updateMatch = async (req, res) => {
 };
 
 const deleteMatch = async (req, res) => {
+  const matchId = req.params.id;
+
   try {
-    const matchId = req.params.id;
+    // 1. 해당 Match에 연결된 모든 Reservation 찾기 및 삭제
+    // 먼저 삭제할 예약들의 ID를 미리 가져옵니다. User 모델 업데이트에 필요해요.
+    const reservationsToDelete = await Reservation.find({
+      match: matchId,
+    });
+    const reservationIds = reservationsToDelete.map((r) => r._id);
 
-    // 매치 조회
-    const match = await Match.findById(matchId);
-    if (!match) {
-      return res.status(404).json({ error: "매치를 찾을 수 없습니다." });
-    }
-
-    // **이전 subField ID를 저장해 둡니다.**
-    const originalSubFieldId = match.subField;
-
-    // 매치 삭제
-    // Mongoose의 deleteOne은 쿼리 객체를 받습니다. match 객체 자체가 아니라 { _id: match._id } 와 같이 주는 것이 명확합니다.
-    const deleteResult = await Match.deleteOne({ _id: match._id });
-
-    if (deleteResult.deletedCount === 0) {
-      // 이 경우는 findById는 성공했지만 deleteOne이 실패한 경우
-      return res.status(500).json({
-        error:
-          "매치 삭제는 성공했지만, 데이터베이스에서 실제로 삭제되지 않았습니다.",
-      });
-    }
-
-    // 서브필드 조회 (삭제된 매치의 원래 subField를 사용)
-    const subField = await SubField.findById(originalSubFieldId);
-
-    if (!subField) {
-      console.warn(
-        "deleteMatch: SubField not found for match.subField:",
-        originalSubFieldId
-      );
-      // return res.status(404).json({ error: "연결된 서브필드를 찾을 수 없습니다. (그러나 매치는 삭제됨)" });
-      // 매치는 삭제되었으니 200 OK를 반환하고 경고만 남길 수 있습니다.
-      return res.status(200).json({
-        message:
-          "매치가 성공적으로 삭제되었으나, 연결된 서브필드 업데이트에 실패했습니다.",
-      });
-    }
-
-    // 서브필드에서 매치 제거
-    const initialSubFieldMatchCount = subField.match.length;
-    subField.match = subField.match.filter(
-      (m) => m.toString() !== match._id.toString()
+    const deletedReservationsResult = await Reservation.deleteMany({
+      match: matchId,
+    });
+    console.log(
+      `삭제된 Reservation 수: ${deletedReservationsResult.deletedCount}개`
     );
 
-    await subField.save();
+    // 2. User 모델에서 삭제된 Reservation 참조 제거
+    if (reservationIds.length > 0) {
+      const updatedUsersResult = await User.updateMany(
+        { reservation: { $in: reservationIds } }, // 삭제된 예약 ID를 포함하는 User 문서를 찾습니다.
+        { $pull: { reservation: { $in: reservationIds } } } // 해당 예약 ID들을 reservation 배열에서 제거합니다.
+      );
+      console.log(
+        `업데이트된 User 수 (Reservation 참조 제거): ${updatedUsersResult.modifiedCount}개`
+      );
+    }
 
-    res.status(200).json({ message: "매치가 성공적으로 삭제되었습니다." });
-  } catch (err) {
-    console.error("매치 삭제 오류:", err);
-    res.status(500).json({ error: "매치 삭제 중 오류 발생" });
+    // 3. SubField 모델에서 해당 Match 참조 제거
+    const updatedSubFieldResult = await SubField.updateMany(
+      { match: matchId },
+      { $pull: { match: matchId } }
+    );
+    console.log(
+      `업데이트된 SubField 수 (Match 참조 제거): ${updatedSubFieldResult.modifiedCount}개`
+    );
+
+    // 4. Match 문서 삭제
+    const deletedMatch = await Match.findByIdAndDelete(matchId);
+
+    if (!deletedMatch) {
+      return res.status(404).json({
+        message: "매치를 찾을 수 없거나 이미 삭제되었습니다.",
+      });
+    }
+
+    res.status(200).json({
+      message: "매치 및 모든 연관 데이터가 성공적으로 삭제되었습니다.",
+      deletedMatch: deletedMatch,
+    });
+  } catch (error) {
+    console.error("매치 삭제 중 오류 발생:", error);
+    res.status(500).json({ message: "서버 오류", error: error.message });
   }
 };
 

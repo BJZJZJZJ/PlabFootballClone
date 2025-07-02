@@ -1,6 +1,8 @@
 const User = require("../models/userModel"); // DB 모델
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs"); // 비밀번호 해시암호화 모듈
+const Reservation = require("../models/reservationModel");
+const Match = require("../models/matchModel");
 
 const JWT_SECRET = process.env.JWT_SECRET || "default";
 
@@ -233,17 +235,72 @@ const getUserById = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-  const { id } = req.params;
+  const userId = req.params.id;
+
   try {
-    const user = await User.findByIdAndDelete(id);
-    if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    // 1. 해당 사용자가 만든 모든 예약(Reservation) 삭제
+    const deletedReservationsResult = await Reservation.deleteMany({
+      user: userId,
+    });
+    console.log(`삭제된 예약 수: ${deletedReservationsResult.deletedCount}개`);
+
+    // 2. Match 모델에서 해당 사용자(User)에 대한 참조 제거
+    // $pull 연산자를 사용하여 participants 배열에서 userId를 제거합니다.
+    const updatedMatchesResult = await Match.updateMany(
+      { participants: userId }, // userId를 포함하는 모든 Match 문서를 찾습니다.
+      { $pull: { participants: userId } } // participants 배열에서 userId를 제거합니다.
+    );
+    console.log(
+      `업데이트된 매치 수 (참가자 제거): ${updatedMatchesResult.modifiedCount}개`
+    );
+
+    // 2-1. participants 배열이 업데이트된 후, participantInfo 필드를 재계산합니다.
+    // 실제로 매치 문서가 수정된 경우에만 이 로직을 실행합니다.
+    if (updatedMatchesResult.modifiedCount > 0) {
+      // Mongoose 5.x 이상에서 updateMany에 집계 파이프라인 사용
+      await Match.updateMany(
+        { participants: { $ne: userId } }, // userId가 제거된 매치들을 대상으로
+        [
+          {
+            $set: {
+              "participantInfo.currentPlayers": { $size: "$participants" },
+              "participantInfo.spotsLeft": {
+                $subtract: [
+                  "$participantInfo.maximumPlayers",
+                  { $size: "$participants" },
+                ],
+              },
+              "participantInfo.isFull": {
+                $gte: [
+                  { $size: "$participants" },
+                  "$participantInfo.maximumPlayers",
+                ],
+              },
+            },
+          },
+        ]
+      );
+      console.log("Match participantInfo 필드 갱신 완료.");
     }
 
-    return res.status(200).json({ message: "사용자가 삭제되었습니다." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "서버 오류" });
+    // 3. 사용자(User) 본인 삭제
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        message: "사용자를 찾을 수 없거나 이미 삭제되었습니다.",
+      });
+    }
+
+    res.status(200).json({
+      message: "사용자 및 관련 데이터가 성공적으로 삭제되었습니다.",
+      deletedUser: deletedUser,
+      deletedReservationsCount: deletedReservationsResult.deletedCount,
+      updatedMatchesCount: updatedMatchesResult.modifiedCount,
+    });
+  } catch (error) {
+    console.error("사용자 삭제 중 오류 발생:", error);
+    res.status(500).json({ message: "서버 오류", error: error.message });
   }
 };
 

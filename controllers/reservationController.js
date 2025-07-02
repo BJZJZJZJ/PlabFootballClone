@@ -108,7 +108,7 @@ const addReservation = async (req, res) => {
     await match.save();
 
     const user = await User.findById(userId);
-    user.reservedMatches.push(matchId);
+    user.reservation.push(reservation._id);
     await user.save();
 
     res.status(201).json({ message: "예약 성공", reservation });
@@ -134,11 +134,8 @@ const updateReservation = async (req, res) => {
     const oldMatchId = reservation.match;
     const oldUserId = reservation.user;
 
-    if (matchId !== oldMatchId) changedFieldsCount++;
+    if (matchId !== oldMatchId.toString()) changedFieldsCount++;
     if (status !== oldStatus) changedFieldsCount++;
-
-    console.log(matchId, oldMatchId.toString());
-    console.log(status, oldStatus);
 
     if (changedFieldsCount > 1) {
       return res.status(400).json({
@@ -158,15 +155,6 @@ const updateReservation = async (req, res) => {
           // 예약 상태가 '예약'일때만 참여자로 간주
           prevMatch.participants.pull(oldUserId);
           await prevMatch.save(); // pre('save') 훅이 currentPlayers 등을 업데이트
-
-          const user = await User.findById(userId);
-          if (!user) {
-            return res
-              .status(404)
-              .json({ message: "사용자를 찾을 수 없습니다." });
-          }
-          user.reservedMatches.pull(oldMatchId); // 이전 매치 제거
-          await user.save();
         }
       }
 
@@ -190,15 +178,6 @@ const updateReservation = async (req, res) => {
           // 새로운 예약이 '예약' 상태면 새 매치에 추가
           newMatchDoc.participants.push(reservation.user);
           await newMatchDoc.save();
-
-          const user = await User.findById(userId);
-          if (!user) {
-            return res
-              .status(404)
-              .json({ message: "사용자를 찾을 수 없습니다." });
-          }
-          user.reservedMatches.push(matchId); // 새로운 매치 추가
-          await user.save();
         }
       } else {
         return res
@@ -225,7 +204,7 @@ const updateReservation = async (req, res) => {
               .status(404)
               .json({ message: "사용자를 찾을 수 없습니다." });
           }
-          user.reservedMatches.pull(reservation.match); // 예약 취소 시 사용자에서 제거
+          user.reservation.pull(reservation._id); // 예약 취소 시 사용자에서 제거
           await user.save();
         } else if (oldStatus === "취소" && status === "예약") {
           // '취소' -> '예약' 변경: 매치 참여자에 추가 (인원 체크)
@@ -254,7 +233,7 @@ const updateReservation = async (req, res) => {
               .status(404)
               .json({ message: "사용자를 찾을 수 없습니다." });
           }
-          user.reservedMatches.push(currentMatchToAdjust._id);
+          user.reservation.push(reservation._id);
           await user.save();
         }
         await currentMatchToAdjust.save(); // pre('save') 훅이 currentPlayers 등을 업데이트
@@ -296,7 +275,7 @@ const deleteReservation = async (req, res) => {
     // 2. User 모델의 reservations 배열에서 예약 ID 제거
     const targetUser = await User.findById(reservation.user);
     if (targetUser) {
-      targetUser.reservedMatches.pull(reservation.match); // 사용자에서 해당 매치 제거
+      targetUser.reservation.pull(reservation._id); // 사용자에서 해당 예약 제거
       await targetUser.save();
     } else {
       console.warn(

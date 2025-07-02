@@ -17,10 +17,10 @@ const UserSchema = new mongoose.Schema(
     profileImage: { type: String },
 
     role: { type: String, enum: ["user", "admin"], default: "user" },
-    reservedMatches: [
+    reservation: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Match",
+        ref: "Reservation",
       },
     ],
   },
