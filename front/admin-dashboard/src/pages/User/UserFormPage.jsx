@@ -7,6 +7,7 @@ import "react-datepicker/dist/react-datepicker.css"; // DatePicker 스타일 추
 
 function UserFormPage() {
   const { id } = useParams();
+  const BASEURL = "http://localhost:44445/";
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     role: "", // 역할
@@ -30,6 +31,7 @@ function UserFormPage() {
   };
 
   const handleUpload = async () => {
+    console.log(files);
     if (!files || files.length === 0) {
       setErrorMessage("파일을 하나 이상 선택해주세요.");
       return;
@@ -43,12 +45,13 @@ function UserFormPage() {
         );
         return; // 업로드 중단
       }
-      formData.append("images", files[i]);
+      formData.append("profile", files[i]);
     }
     setErrorMessage(""); // 유효성 검사 통과 시 에러 메시지 제거
+    console.log(formData);
     try {
       const response = await fetch(
-        "http://localhost:44445/api/upload/profile-image",
+        "http://localhost:44445/api/upload/profile",
         {
           method: "POST",
           credentials: "include",
@@ -60,8 +63,8 @@ function UserFormPage() {
         // 서버에서 보낸 에러 메시지 표시
         throw new Error(data.message || "업로드 실패");
       }
-
-      setUploadedFiles(data.files);
+      console.log(data.data);
+      setUploadedFiles(data.data);
     } catch (error) {
       console.error(error);
       setErrorMessage(error.message);
@@ -102,6 +105,8 @@ function UserFormPage() {
                 : user.gender === true
                 ? true
                 : null,
+
+            profileImage: user.profileImage || "uploads/default.png",
           });
         } catch (err) {
           setError("Failed to fetch user data for editing: " + err.message);
@@ -177,6 +182,11 @@ function UserFormPage() {
     }
   };
 
+  useEffect(() => {
+    console.log(`${BASEURL}${uploadedFiles.originalUrl}`);
+    console.log(`${BASEURL}${uploadedFiles.thumbnailUrl}`);
+  }, [uploadedFiles]);
+
   if (loading && isEditMode) return <div>Loading user data...</div>;
   if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
 
@@ -188,17 +198,18 @@ function UserFormPage() {
 
       <div style={{ padding: 20, fontFamily: "sans-serif" }}>
         <label
-          htmlFor="profileImage"
+          htmlFor="profile"
           style={{ display: "block", marginBottom: "5px" }}
         >
           Profile
         </label>
         <h2>다중 이미지 업로드 (용량 제한: {MAX_FILE_SIZE_MB}MB)</h2>
         <input
+          name="image"
+          id="image"
           type="file"
           accept="image/*"
           onChange={handleFileChange}
-          multiple
         />
         <button onClick={handleUpload} style={{ marginLeft: 10 }}>
           업로드
@@ -206,36 +217,24 @@ function UserFormPage() {
         {errorMessage && (
           <div style={{ color: "red", marginTop: "10px" }}>{errorMessage}</div>
         )}
-        {uploadedFiles.length > 0 && (
-          <div style={{ marginTop: 20 }}>
-            <h3>업로드된 이미지</h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-              {uploadedFiles.map((file, index) => (
-                <div key={index}>
-                  <p style={{ margin: "0 0 5px 0", fontSize: "12px" }}>
-                    썸네일
-                  </p>
-                  <a
-                    href={file.originalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img
-                      src={file.thumbnailUrl}
-                      alt={`업로드된 이미지 썸네일 ${index + 1}`}
-                      style={{
-                        width: "200px",
-                        height: "auto",
-                        borderRadius: "8px",
-                        border: "1px solid #ddd",
-                      }}
-                    />
-                  </a>
-                </div>
-              ))}
+
+        <div style={{ marginTop: 20 }}>
+          <h3>업로드된 이미지</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+            <div>
+              <img
+                src={`${BASEURL}${formData.profileImage}`}
+                alt={"업로드된 이미지 썸네일"}
+                style={{
+                  width: "200px",
+                  height: "auto",
+                  borderRadius: "8px",
+                  border: "1px solid #ddd",
+                }}
+              />
             </div>
           </div>
-        )}
+        </div>
       </div>
       <h2>{isEditMode ? "Edit User" : "Add New User"}</h2>
       <form

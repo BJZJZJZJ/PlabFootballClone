@@ -1,6 +1,8 @@
 // multer 설정 파일
 const multer = require("multer");
 const path = require("path");
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -11,6 +13,14 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE_BYTES,
+  },
+});
 
-module.exports = upload;
+module.exports = {
+  uploadImages: upload.array("images", 10),
+  uploadProfile: upload.single("profile"),
+};

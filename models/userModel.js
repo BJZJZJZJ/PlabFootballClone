@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema(
     name: String,
     birth: Date,
     gender: Boolean, // 남자 0, 여자 1
-    profileImage: { type: String, default: "default.png" },
+    profileImage: { type: String, default: "uploads/default.png" },
 
     role: { type: String, enum: ["user", "admin"], default: "user" },
     reservation: [
