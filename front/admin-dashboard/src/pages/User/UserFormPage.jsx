@@ -19,6 +19,55 @@ function UserFormPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [files, setFiles] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  const handleFileChange = (e) => {
+    setFiles(e.target.files);
+    setErrorMessage(""); // 파일 다시 선택 시 에러 메시지 초기화
+  };
+
+  const handleUpload = async () => {
+    if (!files || files.length === 0) {
+      setErrorMessage("파일을 하나 이상 선택해주세요.");
+      return;
+    }
+    const formData = new FormData();
+    // 업로드 전 파일 크기 검사
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > MAX_FILE_SIZE_BYTES) {
+        setErrorMessage(
+          `"${files[i].name}" 파일의 크기가 너무 큽니다. (최대 ${MAX_FILE_SIZE_MB}MB)`
+        );
+        return; // 업로드 중단
+      }
+      formData.append("images", files[i]);
+    }
+    setErrorMessage(""); // 유효성 검사 통과 시 에러 메시지 제거
+    try {
+      const response = await fetch(
+        "http://localhost:44445/api/upload/profile-image",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        // 서버에서 보낸 에러 메시지 표시
+        throw new Error(data.message || "업로드 실패");
+      }
+
+      setUploadedFiles(data.files);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(error.message);
+    }
+  };
+
   const isEditMode = Boolean(id);
 
   // 역할 드롭다운 옵션 (예시)
@@ -135,6 +184,59 @@ function UserFormPage() {
     <div
       style={{ padding: "20px", border: "1px solid #eee", borderRadius: "8px" }}
     >
+      {/* 0. 이미지 프로필 */}
+
+      <div style={{ padding: 20, fontFamily: "sans-serif" }}>
+        <label
+          htmlFor="profileImage"
+          style={{ display: "block", marginBottom: "5px" }}
+        >
+          Profile
+        </label>
+        <h2>다중 이미지 업로드 (용량 제한: {MAX_FILE_SIZE_MB}MB)</h2>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          multiple
+        />
+        <button onClick={handleUpload} style={{ marginLeft: 10 }}>
+          업로드
+        </button>
+        {errorMessage && (
+          <div style={{ color: "red", marginTop: "10px" }}>{errorMessage}</div>
+        )}
+        {uploadedFiles.length > 0 && (
+          <div style={{ marginTop: 20 }}>
+            <h3>업로드된 이미지</h3>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {uploadedFiles.map((file, index) => (
+                <div key={index}>
+                  <p style={{ margin: "0 0 5px 0", fontSize: "12px" }}>
+                    썸네일
+                  </p>
+                  <a
+                    href={file.originalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img
+                      src={file.thumbnailUrl}
+                      alt={`업로드된 이미지 썸네일 ${index + 1}`}
+                      style={{
+                        width: "200px",
+                        height: "auto",
+                        borderRadius: "8px",
+                        border: "1px solid #ddd",
+                      }}
+                    />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       <h2>{isEditMode ? "Edit User" : "Add New User"}</h2>
       <form
         onSubmit={handleSubmit}
