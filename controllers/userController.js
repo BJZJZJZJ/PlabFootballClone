@@ -164,11 +164,12 @@ const getUserDetail = async (req, res) => {
   }
 };
 
-
-
 const updateProfile = async (req, res) => {
   const data = req.body;
   const id = req.params.id || req.user; // URL 파라미터에서 ID를 가져오거나, 인증된 사용자 ID 사용
+
+  // 비밀번호 갱신 할때 해쉬하기.
+  // 빈 문자열이면 수정 안 하기
   try {
     const user = await User.findByIdAndUpdate(id, data, { new: true });
     if (!user) {

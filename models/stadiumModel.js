@@ -37,6 +37,13 @@ const stadiumSchema = new mongoose.Schema({
     drinkSale: { type: Boolean, default: false }, // 음료 판매 여부
     toiletGenderDivision: { type: Boolean, default: false }, // 화장실 성별 구분 여부
   },
+
+  previewImage: [
+    {
+      originalUrl: { type: String, default: "uploads/stadium/default.png" },
+      thumbnailUrl: { type: String, default: "uploads/stadium/default.png" },
+    },
+  ],
 });
 
 const stadiumModel = mongoose.model("Stadium", stadiumSchema, "Stadium");

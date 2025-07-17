@@ -35,7 +35,7 @@ const { multerErrorHandler } = require("../utils/multerError.js");
  *        description: 서버 오류
  */
 router.post(
-  "/profile",
+  "/profile/:id",
   authenticate,
   uploadProfile,
   multerErrorHandler,
