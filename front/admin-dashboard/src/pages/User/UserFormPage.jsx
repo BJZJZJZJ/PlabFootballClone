@@ -51,7 +51,7 @@ function UserFormPage() {
     console.log(formData);
     try {
       const response = await fetch(
-        "http://localhost:44445/api/upload/profile",
+        `http://localhost:44445/api/upload/profile/${id}`,
         {
           method: "POST",
           credentials: "include",
@@ -106,7 +106,7 @@ function UserFormPage() {
                 ? true
                 : null,
 
-            profileImage: user.profileImage || "uploads/default.png",
+            profileImage: user.profileImage || "uploads/user/default.png",
           });
         } catch (err) {
           setError("Failed to fetch user data for editing: " + err.message);
