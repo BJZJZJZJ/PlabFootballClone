@@ -42,12 +42,16 @@ const getMatchByDate = async (req, res) => {
 
     const matches = await Match.find({ startTime: timeFilter.dateTime }) // dateTime 필터링
       .sort({ startTime: 1 }) // ⬅️ 경기시간 기준 오름차순 정렬
-      .select("id startTime subField conditions")
+      .select(
+        "id _id startTime durationMinutes endTime participantInfo conditions subField"
+      )
       .populate({
         path: "subField",
+        select: "id _id fieldName stadium",
         populate: {
           path: "stadium",
           model: "Stadium",
+          select: "id _id name location",
         },
       });
 
@@ -62,13 +66,19 @@ const getMatchByDate = async (req, res) => {
 
 const getMatchById = async (req, res) => {
   try {
-    const match = await Match.findById(req.params.id).populate({
-      path: "subField",
-      populate: {
-        path: "stadium", // subField > stadium 정보도 가져옴
-        model: "Stadium",
-      },
-    });
+    const match = await Match.findById(req.params.id)
+      .select(
+        "_id id startTime durationMinutes conditions fee participantInfo subField"
+      )
+      .populate({
+        path: "subField",
+        select: "_id id fieldName",
+        populate: {
+          path: "stadium", // subField > stadium 정보도 가져옴
+          model: "Stadium",
+          select: "id _id location name ",
+        },
+      });
 
     if (!match) {
       return res.status(404).json({ error: "경기를 찾을 수 없습니다." });
@@ -83,12 +93,17 @@ const getMatchById = async (req, res) => {
 
 const getAllMatch = async (req, res) => {
   try {
-    const matches = await Match.find() // dateTime 필터링
+    const matches = await Match.find()
+      .select(
+        "id _id startTime durationMinutes endTime conditions participantInfo fee status subField"
+      )
       .populate({
         path: "subField",
+        select: "id _id fieldName stadium",
         populate: {
           path: "stadium",
           model: "Stadium",
+          select: "_id name location",
         },
       });
 

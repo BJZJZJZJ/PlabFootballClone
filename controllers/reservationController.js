@@ -5,13 +5,15 @@ const Reservation = require("../models/reservationModel"); // 예약 모델
 const getAllReservations = async (req, res) => {
   try {
     const reservations = await Reservation.find()
+      .select("reservedAt status")
       .populate("user", "email name")
       .populate({
         path: "match",
+        select: "_id startTime",
         populate: {
           path: "subField",
           select: "fieldName stadium",
-          populate: { path: "stadium" },
+          populate: { path: "stadium", select: "location name" },
         },
       });
 
@@ -36,8 +38,7 @@ const getReservationById = async (req, res) => {
           },
           { path: "participants", select: "name email" }, // Match의 참여자 정보도 populate
         ],
-        select:
-          "dateTime durationMinutes subField conditions participantInfo participants",
+        select: "dateTime durationMinutes subField conditions participantInfo",
       });
 
     if (!reservation) {
@@ -55,10 +56,17 @@ const getReservationByLogined = async (req, res) => {
     const reservations = await Reservation.find({
       user: req.user,
       status: "예약",
-    }).populate({
-      path: "match",
-      populate: { path: "subField", populate: { path: "stadium" } },
-    });
+    })
+      .select("user reservedAt status")
+      .populate({
+        path: "match",
+        select: "conditions startTime durationMinutes fee ",
+        populate: {
+          path: "subField",
+          select: "fieldName ",
+          populate: { path: "stadium", select: "location facilities name" },
+        },
+      });
 
     res.json(reservations);
   } catch (err) {

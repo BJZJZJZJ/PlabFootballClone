@@ -14,12 +14,8 @@ const UserSchema = new mongoose.Schema(
     name: String,
     birth: Date,
     gender: Boolean, // 남자 0, 여자 1
-    profileImage: [
-      {
-        originalUrl: { type: String, default: "uploads/stadium/default.png" },
-        thumbnailUrl: { type: String, default: "uploads/stadium/default.png" },
-      },
-    ],
+    profileImageUrl: { type: String, default: "uploads/user/default.png" },
+    thumbnailImageUrl: { type: String, default: "uploads/user/default.png" },
 
     role: { type: String, enum: ["user", "admin"], default: "user" },
     reservation: [

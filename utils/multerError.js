@@ -10,7 +10,7 @@ const multerErrorHandler = (err, req, res, next) => {
       });
     }
     // 그 외 Multer 관련 에러
-    return res.status(400).json({ message: err.message, msg: "여기" });
+    return res.status(400).json({ message: err.message });
   } else if (err) {
     // Multer 외의 알 수 없는 에러
     return res.status(500).json({ message: "알 수 없는 오류가 발생했습니다." });

@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiClient.get("/api/user/signout");
+      await apiClient.post("/api/user/logout");
       setUser(null); // 사용자 정보 초기화
     } catch (err) {
       console.error("Logout error:", err);

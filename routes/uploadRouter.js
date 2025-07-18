@@ -1,38 +1,42 @@
 const express = require("express");
 const router = express.Router();
 const authenticate = require("../utils/authenticate.js");
-const { uploadProfile } = require("../utils/multer"); // multer 설정 파일
+const { uploadProfile, uploadStadium } = require("../utils/multer"); // multer 설정 파일
 const uploadController = require("../controllers/uploadController.js");
 const { multerErrorHandler } = require("../utils/multerError.js");
 
 /**
  * @swagger
- * /api/upload/profile:
- *  post:
- *    summary: 프로필 이미지 업로드
- *    description: 사용자의 프로필 이미지를 업로드합니다.
- *    tags: [Upload]
- *    security:
- *      - bearerAuth: []
- *    consumes:
- *      - multipart/form-data
- *    parameters:
- *      - in: formData
- *        name: profileImage
- *        type: file
- *        required: true
- *        description: 업로드할 프로필 이미지.
- *    responses:
- *      200:
- *        description: 프로필 이미지 업로드 성공
- *      400:
- *        description: 이미지를 업로드해야 합니다.
- *      401:
- *        description: 로그인 필요
- *      404:
- *        description: 사용자를 찾을 수 없습니다.
- *      500:
- *        description: 서버 오류
+ * /api/upload/profile/{id}:
+ *   post:
+ *     summary: Upload a profile image
+ *     tags: [Upload]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Profile image uploaded successfully
+ *       400:
+ *         description: Image is required
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
 router.post(
   "/profile/:id",
@@ -40,6 +44,50 @@ router.post(
   uploadProfile,
   multerErrorHandler,
   uploadController.addProfileImage
+);
+
+/**
+ * @swagger
+ * /api/upload/stadium/{id}:
+ *   post:
+ *     summary: Upload stadium images
+ *     tags: [Upload]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Stadium ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Stadium images uploaded successfully
+ *       400:
+ *         description: Images are required
+ *       404:
+ *         description: Stadium not found
+ *       500:
+ *         description: Server error
+ */
+
+router.post(
+  "/stadium/:id",
+  authenticate,
+  uploadStadium,
+  multerErrorHandler,
+  uploadController.addStadiumImage
 );
 
 module.exports = router;

@@ -8,99 +8,61 @@ const router = express.Router();
  * @swagger
  * /api/match:
  *   get:
- *     summary: 특정 날짜 모든 매치 목록 조회
- *     tags: [Match]
+ *     summary: 날짜별 현재 진행 가능한 매치 조회
+ *     tags: [Matches]
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           example: "2025-07-10"
+ *         required: true
+ *         description: Date in YYYY-MM-DD format
  *     responses:
  *       200:
- *         description: 모든 매치 정보 반환 (subField 및 stadium 포함)
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   dateTime:
- *                     type: string
- *                     format: date-time
- *                   durationMinutes:
- *                     type: integer
- *                   conditions:
- *                     type: string
- *                   fee:
- *                     type: integer
- *                   participantInfo:
- *                     type: object
- *                     properties:
- *                       min:
- *                         type: integer
- *                       max:
- *                         type: integer
- *                   subField:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       fieldName:
- *                         type: string
- *                       size:
- *                         type: object
- *                         properties:
- *                           width:
- *                             type: number
- *                           height:
- *                             type: number
- *                       indoor:
- *                         type: boolean
- *                       surface:
- *                         type: string
- *                       stadium:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                           name:
- *                             type: string
- *                           location:
- *                             type: object
- *                             properties:
- *                               province:
- *                                 type: string
- *                               city:
- *                                 type: string
- *                               district:
- *                                 type: string
- *                               address:
- *                                 type: string
+ *         description: 매치 목록 조회 성공
+ *       400:
+ *         description: 쿼리 파라미터 필요
  *       500:
- *         description: 서버 오류로 조회 실패
+ *         description: 서버 에러
  */
 router.get("/", matchController.getMatchByDate);
 
+/**
+ * @swagger
+ * /api/match/all:
+ *   get:
+ *     summary: 모든 매치 목록 조회
+ *     tags: [Matches]
+ *     responses:
+ *       200:
+ *         description: 모든 매치 목록 성공
+ *       500:
+ *         description: 서버 에러
+ */
 router.get("/all", matchController.getAllMatch);
 
 /**
  * @swagger
  * /api/match/{id}:
  *   get:
- *     summary: 특정 ID의 매치 조회
- *     tags: [Match]
+ *     summary: 특정 ID 매치 조회
+ *     tags: [Matches]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
+ *           example : "68627dc223b934b40c3f19a1"
  *         required: true
- *         description: 매치 ID
+ *         description: Match ID
  *     responses:
  *       200:
- *         description: 매치 정보 조회 성공
+ *         description: 매치 조회 성공
  *       404:
- *         description: 매치가 존재하지 않음
+ *         description: 매치 조회 실패
  *       500:
- *         description: 서버 오류
+ *         description: 서버 에러
  */
 router.get("/:id", matchController.getMatchById);
 
@@ -108,81 +70,77 @@ router.get("/:id", matchController.getMatchById);
  * @swagger
  * /api/match:
  *   post:
- *     summary: 새 매치 등록
- *     tags: [Match]
+ *     summary: 새로운 매치 생성
+ *     tags: [Matches]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               dateTime:
- *                 type: string
- *                 format: date-time
- *               durationMinutes:
- *                 type: integer
- *               subFieldId:
- *                 type: string
- *               conditions:
- *                 type: string
- *               fee:
- *                 type: number
- *               participantInfo:
- *                 type: object
- *             required:
- *               - dateTime
- *               - durationMinutes
- *               - subFieldId
+ *             $ref: '#/components/schemas/Match'
  *     responses:
  *       201:
- *         description: 매치 등록 성공
+ *         description: 매치 생성 성공
  *       404:
- *         description: SubField 존재하지 않음
+ *         description: SubField 조회 실패
+ *       409:
+ *         description: 매치 시간 중복
  *       500:
- *         description: 서버 오류
+ *         description: 서버 에러
  */
 router.post("/", matchController.addMatch);
 
 /**
  * @swagger
  * /api/match/{id}:
- *   patch:
+ *   put:
  *     summary: 매치 정보 수정
- *     tags: [Match]
- *     security:
- *       - bearerAuth: []
+ *     tags: [Matches]
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
- *         description: 수정할 매치 ID
  *         schema:
  *           type: string
+ *           example : "68627dc223b934b40c3f19a1"
+ *         required: true
+ *         description: Match ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               dateTime:
- *                 type: string
- *                 format: date-time
- *               subField:
- *                 type: string
- *               conditions:
- *                 type: object
- *                 additionalProperties: true
+ *             $ref: '#/components/schemas/Match'
  *     responses:
  *       200:
- *         description: 수정된 매치 정보 반환
+ *         description: 매치 정보 수정 성공
  *       404:
- *         description: 매치를 찾을 수 없음
+ *         description: 매치 조회 실패
  *       500:
- *         description: 서버 오류
+ *         description: 서버 에러
  */
 router.put("/:id", matchController.updateMatch);
+
+/**
+ * @swagger
+ * /api/match/{id}:
+ *   delete:
+ *     summary: 매치 삭제
+ *     tags: [Matches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Match ID
+ *     responses:
+ *       200:
+ *         description: 매치 삭제 성공
+ *       404:
+ *         description: 매치 조회 실패
+ *       500:
+ *         description: 서버 에러
+ */
 router.delete("/:id", matchController.deleteMatch);
 
 module.exports = router;

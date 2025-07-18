@@ -45,10 +45,9 @@ function UserFormPage() {
         );
         return; // 업로드 중단
       }
-      formData.append("profile", files[i]);
+      formData.append("profileImage", files[i]);
     }
     setErrorMessage(""); // 유효성 검사 통과 시 에러 메시지 제거
-    console.log(formData);
     try {
       const response = await fetch(
         `http://localhost:44445/api/upload/profile/${id}`,
@@ -106,7 +105,9 @@ function UserFormPage() {
                 ? true
                 : null,
 
-            profileImage: user.profileImage || "uploads/user/default.png",
+            profileImage: user.profileImageUrl || "uploads/user/default.png",
+            thumbnailImageUrl:
+              user.thumbnailImageUrl || "uploads/user/default.png",
           });
         } catch (err) {
           setError("Failed to fetch user data for editing: " + err.message);
@@ -183,8 +184,8 @@ function UserFormPage() {
   };
 
   useEffect(() => {
-    console.log(`${BASEURL}${uploadedFiles.originalUrl}`);
-    console.log(`${BASEURL}${uploadedFiles.thumbnailUrl}`);
+    //console.log(`${BASEURL}${uploadedFiles.originalUrl}`);
+    //console.log(`${BASEURL}${uploadedFiles.thumbnailUrl}`);
   }, [uploadedFiles]);
 
   if (loading && isEditMode) return <div>Loading user data...</div>;
@@ -205,7 +206,7 @@ function UserFormPage() {
         </label>
         <h2>다중 이미지 업로드 (용량 제한: {MAX_FILE_SIZE_MB}MB)</h2>
         <input
-          name="image"
+          name="profileImage"
           id="image"
           type="file"
           accept="image/*"
@@ -223,7 +224,7 @@ function UserFormPage() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
             <div>
               <img
-                src={`${BASEURL}${formData.profileImage}`}
+                src={`${BASEURL}${formData.thumbnailImageUrl}`}
                 alt={"업로드된 이미지 썸네일"}
                 style={{
                   width: "200px",

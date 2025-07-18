@@ -111,9 +111,9 @@ const logout = (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user, "-password -__v"); // 비밀번호와 버전 정보 제외
+    const user = await User.findById(req.user, "-password -__v"); //
 
-    res.json({
+    res.status(200).json({
       user: {
         id: user._id,
         role: user.role,
@@ -165,13 +165,23 @@ const getUserDetail = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const data = req.body;
+  const { password, name, birth, gender, role } = req.body;
   const id = req.params.id || req.user; // URL 파라미터에서 ID를 가져오거나, 인증된 사용자 ID 사용
 
-  // 비밀번호 갱신 할때 해쉬하기.
-  // 빈 문자열이면 수정 안 하기
+  const hashedPassword = password ? await createHash(password) : undefined;
+
   try {
-    const user = await User.findByIdAndUpdate(id, data, { new: true });
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        password: hashedPassword,
+        name,
+        birth,
+        gender,
+        role,
+      },
+      { new: true }
+    ).select("email name birth gender role");
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
@@ -216,6 +226,14 @@ const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
   try {
+    // 0. 삭제 할 유저가 있는지부터 조회
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "사용자를 찾을 수 없거나 이미 삭제되었습니다.",
+      });
+    }
+
     // 1. 해당 사용자가 만든 모든 예약(Reservation) 삭제
     const deletedReservationsResult = await Reservation.deleteMany({
       user: userId,
@@ -263,12 +281,6 @@ const deleteUser = async (req, res) => {
 
     // 3. 사용자(User) 본인 삭제
     const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return res.status(404).json({
-        message: "사용자를 찾을 수 없거나 이미 삭제되었습니다.",
-      });
-    }
 
     res.status(200).json({
       message: "사용자 및 관련 데이터가 성공적으로 삭제되었습니다.",

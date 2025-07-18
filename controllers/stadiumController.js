@@ -8,7 +8,10 @@ const mongoose = require("mongoose");
 
 const getStadium = async (_, res) => {
   try {
-    const stadiums = await Stadium.find().populate("subField");
+    const stadiums = await Stadium.find().populate({
+      path: "subField",
+      select: "fieldName",
+    });
     res.json(stadiums);
   } catch (err) {
     console.error(err);
