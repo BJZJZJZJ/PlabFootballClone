@@ -50,7 +50,7 @@ router.post(
  * @swagger
  * /api/upload/stadium/{id}:
  *   post:
- *     summary: Upload stadium images
+ *     summary: stadium 이미지 추가 API (미완성)
  *     tags: [Upload]
  *     parameters:
  *       - in: path

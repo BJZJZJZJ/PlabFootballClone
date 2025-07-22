@@ -156,6 +156,7 @@ const getUserDetail = async (req, res) => {
         name: user.name,
         birth: user.birth,
         gender: user.gender,
+        _id: user._id,
       },
     });
   } catch (err) {

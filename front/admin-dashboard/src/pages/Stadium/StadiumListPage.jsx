@@ -101,9 +101,7 @@ function StadiumListPage() {
                       to={`/subField/edit/?subFieldId=${field._id}?stadiumId=${stadium._id}`}
                       style={{ marginRight: "10px" }}
                     >
-                      <div key={field.id}>
-                        {field.fieldName} ( {field.match.length} )
-                      </div>
+                      <div key={field.id}>{field.fieldName}</div>
                     </Link>
                   ))}
                 </td>

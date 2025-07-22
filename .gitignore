@@ -141,5 +141,6 @@ dist
 .tmp
 /cert
 /front/1st
+/front/plab
 /test
 /uploads

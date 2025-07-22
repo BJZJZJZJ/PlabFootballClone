@@ -68,7 +68,7 @@ const getMatchById = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id)
       .select(
-        "_id id startTime durationMinutes conditions fee participantInfo subField"
+        "_id id startTime durationMinutes endTime conditions fee participantInfo status subField"
       )
       .populate({
         path: "subField",

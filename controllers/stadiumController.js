@@ -4,7 +4,6 @@ const SubField = require("../models/subFieldModel"); // 서브 필드 모델
 const Match = require("../models/matchModel"); // 매치 모델
 const Reservation = require("../models/reservationModel");
 const User = require("../models/userModel");
-const mongoose = require("mongoose");
 
 const getStadium = async (_, res) => {
   try {
@@ -373,7 +372,9 @@ const deleteSubField = async (req, res) => {
 
 const getAllSubField = async (_, res) => {
   try {
-    const subFields = await SubField.find().populate("stadium");
+    const subFields = await SubField.find()
+      .select("fieldName size indoor surface ")
+      .populate("stadium", "location name ");
     res.json(subFields);
   } catch (err) {
     console.error(err);

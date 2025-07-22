@@ -106,6 +106,26 @@ router.post("/logout", userController.logout);
  *     responses:
  *       200:
  *         description: 정보 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *              type: object
+ *              properties:
+ *                id:
+ *                 type: string
+ *                 description: "유저 고유 ID"
+ *                 example: "6825ecd11b7ed07a429a4f1a"
+ *                role:
+ *                 type: string
+ *                 description: "유저의 Role"
+ *                 example: "User"
+ *             examples:
+ *               UserFound:
+ *                 summary: 유저 정보 조회 성공 예시
+ *                 value:
+ *                  user :
+ *                   id: 6825ecd11b7ed07a429a4f1a
+ *                   role: user
  *       500:
  *         description: 서버 에러
  */
@@ -133,7 +153,43 @@ router.get("/get-user", authenticate, userController.getUser);
  *                 example : pwdtest
  *     responses:
  *       200:
- *         description: 유저 정보 반환
+ *         description: 정보 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *              type: object
+ *              properties:
+ *                email:
+ *                 type: string
+ *                 description: "유저 Email"
+ *                 example: "test1234@test.com"
+ *                name:
+ *                 type: string
+ *                 description: "유저 이름"
+ *                 example: "전전김"
+ *                birth:
+ *                 type: string
+ *                 description: "유저 생일 (ISO 8601 형식)"
+ *                 format: date-time
+ *                 example: "1995-11-03T00:00:00.000Z"
+ *                _id:
+ *                 type: string
+ *                 description: "유저 고유 ID"
+ *                 example: "6825ecd11b7ed07a429a4f1a"
+ *                gender:
+ *                 type: boolean
+ *                 description: "유저의 성별 (남성 false, 여성 true)"
+ *                 example: true
+ *             examples:
+ *               UserFound:
+ *                 summary: 비밀번호 인증 및 유저 정보 반환
+ *                 value:
+ *                  user :
+ *                   _id: 6825ecd11b7ed07a429a4f1a
+ *                   email: test1234@test.com
+ *                   birth: 1995-11-03T00:00:00.000Z
+ *                   name: 전씨씨
+ *                   gender: false
  *       401:
  *         description: 인증 실패 (개인정보 오류)
  *       404:
@@ -151,7 +207,26 @@ router.post("/get-user-detail", authenticate, userController.getUserDetail);
  *     tags: [User]
  *     responses:
  *       200:
- *         description: 모든 유저 정보 조회
+ *         description: 정보 반환
+ *         content:
+ *           application/json:
+ *             scheama:
+ *              $ref: '#/components/schemas/User'
+ *             examples:
+ *               FullUserInfo:
+ *                 summary: 모든 유저 정보 반환
+ *                 value:
+ *                  - _id: 6825ecd11b7ed07a429a4f1a
+ *                    email: test1234@test.com
+ *                    birth: 2025-07-10
+ *                    name: 전씨씨
+ *                    gender: false
+ *                    role: admin
+ *                    reservation:
+ *                     - 687c7e6a235057d352005a63
+ *                    profileImageUrl: uploads/user/origin/1752757368132.jpg
+ *                    thumbnailImageUrl: uploads/user/thumb/thumb-1752757368132.jpg
+ *
  *       500:
  *         description: 서버 에러
  */
@@ -174,6 +249,24 @@ router.get("/", userController.getAllUsers);
  *     responses:
  *       200:
  *         description: 유저 정보 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *             examples:
+ *               UserInfoById:
+ *                 summary: ID를 통한 유저 정보 반환
+ *                 value:
+ *                  _id: 6825ecd11b7ed07a429a4f1a
+ *                  email: test1234@test.com
+ *                  birth: 2025-07-10
+ *                  name: 전씨씨
+ *                  gender: false
+ *                  role: admin
+ *                  reservation:
+ *                   - 687c7e6a235057d352005a63
+ *                  profileImageUrl: uploads/user/origin/1752757368132.jpg
+ *                  thumbnailImageUrl: uploads/user/thumb/thumb-1752757368132.jpg
  *       404:
  *         description: 유저 없음
  *       500:

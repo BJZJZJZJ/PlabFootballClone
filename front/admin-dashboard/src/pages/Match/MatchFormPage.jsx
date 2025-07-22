@@ -81,8 +81,8 @@ function MatchFormPage() {
             },
             fee: match.fee || "",
             participantInfo: {
-              minimumPlayers: match.participantInfo?.minimumPlayers || "",
-              maximumPlayers: match.participantInfo?.maximumPlayers || "",
+              minimumPlayers: match.participantInfo?.minimumPlayers || 0,
+              maximumPlayers: match.participantInfo?.maximumPlayers || 0,
               currentPlayers: match.participantInfo?.currentPlayers || 0,
               spotsLeft: match.participantInfo?.spotsLeft || "",
               isFull: match.participantInfo?.isFull || false,

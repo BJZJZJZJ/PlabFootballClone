@@ -7,13 +7,13 @@ const stadiumController = require("../controllers/stadiumController.js");
  * @swagger
  * /api/stadium:
  *   get:
- *     summary: Get all stadiums
+ *     summary: 전체 stadium 조회
  *     tags: [Stadiums]
  *     responses:
  *       200:
- *         description: A list of stadiums
+ *         description: stadium 조회 성공
  *       500:
- *         description: Server error
+ *         description: 서버 에러
  */
 router.get("/", stadiumController.getStadium);
 
@@ -21,22 +21,23 @@ router.get("/", stadiumController.getStadium);
  * @swagger
  * /api/stadium/{id}:
  *   get:
- *     summary: Get a stadium by ID
+ *     summary: ID를 통한 stadium 조회
  *     tags: [Stadiums]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
+ *           example : 6854cb333ff05b1bae8d9f58
  *         required: true
  *         description: Stadium ID
  *     responses:
  *       200:
- *         description: Stadium found
+ *         description: stadium 조회 성공
  *       404:
- *         description: Stadium not found
+ *         description: Stadium 없음
  *       500:
- *         description: Server error
+ *         description: 서버 에러
  */
 router.get("/:id", stadiumController.getStadiumById);
 
@@ -44,7 +45,7 @@ router.get("/:id", stadiumController.getStadiumById);
  * @swagger
  * /api/stadium:
  *   post:
- *     summary: Add a new stadium
+ *     summary: 새로운 Stadium 추가
  *     tags: [Stadiums]
  *     requestBody:
  *       required: true
@@ -64,7 +65,7 @@ router.post("/", stadiumController.addStadium);
  * @swagger
  * /api/stadium/{id}:
  *   put:
- *     summary: Update a stadium
+ *     summary: Stadium 정보 수정
  *     tags: [Stadiums]
  *     parameters:
  *       - in: path
@@ -81,11 +82,11 @@ router.post("/", stadiumController.addStadium);
  *             $ref: '#/components/schemas/Stadium'
  *     responses:
  *       200:
- *         description: Stadium updated successfully
+ *         description: Stadium 정보 수정 성공
  *       404:
- *         description: Stadium not found
+ *         description: Stadium 조회 실패
  *       500:
- *         description: Server error
+ *         description: 서버 에러
  */
 router.put("/:id", stadiumController.updateStadium);
 
@@ -93,7 +94,7 @@ router.put("/:id", stadiumController.updateStadium);
  * @swagger
  * /api/stadium/{id}:
  *   delete:
- *     summary: Delete a stadium
+ *     summary: Stadium 삭제
  *     tags: [Stadiums]
  *     parameters:
  *       - in: path
@@ -104,11 +105,11 @@ router.put("/:id", stadiumController.updateStadium);
  *         description: Stadium ID
  *     responses:
  *       200:
- *         description: Stadium deleted successfully
+ *         description: Stadium 삭제 성공
  *       404:
- *         description: Stadium not found
+ *         description: Stadium 조회 실패
  *       500:
- *         description: Server error
+ *         description: 서버 에러
  */
 router.delete("/:id", stadiumController.deleteStadium);
 
@@ -116,7 +117,7 @@ router.delete("/:id", stadiumController.deleteStadium);
  * @swagger
  * /api/stadium/subfield:
  *   post:
- *     summary: Add a new subfield
+ *     summary: Stadium 내 subfield 추가
  *     tags: [Stadiums]
  *     requestBody:
  *       required: true
@@ -126,13 +127,13 @@ router.delete("/:id", stadiumController.deleteStadium);
  *             $ref: '#/components/schemas/SubField'
  *     responses:
  *       201:
- *         description: Subfield created successfully
+ *         description: subfield 생성 성공
  *       400:
- *         description: stadiumId is required
+ *         description: stadiumId 부재
  *       404:
- *         description: Stadium not found
+ *         description: Stadium 없음
  *       500:
- *         description: Server error
+ *         description: 서버에러
  */
 router.post("/subField", stadiumController.addSubField);
 
@@ -140,13 +141,13 @@ router.post("/subField", stadiumController.addSubField);
  * @swagger
  * /api/stadium/subfield/all:
  *   get:
- *     summary: Get all subfields
+ *     summary: 모든 subField 조회
  *     tags: [Stadiums]
  *     responses:
  *       200:
- *         description: A list of subfields
+ *         description: subField 조회 성공
  *       500:
- *         description: Server error
+ *         description: 서버 에러
  */
 router.get("/subField/all", stadiumController.getAllSubField);
 
@@ -154,7 +155,7 @@ router.get("/subField/all", stadiumController.getAllSubField);
  * @swagger
  * /api/stadium/subfield/{id}:
  *   get:
- *     summary: Get a subfield by ID
+ *     summary: ID를 통한 subField 조회
  *     tags: [Stadiums]
  *     parameters:
  *       - in: path
@@ -165,9 +166,9 @@ router.get("/subField/all", stadiumController.getAllSubField);
  *         description: Subfield ID
  *     responses:
  *       200:
- *         description: Subfield found
+ *         description: subField 조회 성공
  *       404:
- *         description: Subfield not found
+ *         description: 
  *       500:
  *         description: Server error
  */

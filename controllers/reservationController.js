@@ -38,7 +38,7 @@ const getReservationById = async (req, res) => {
           },
           { path: "participants", select: "name email" }, // Match의 참여자 정보도 populate
         ],
-        select: "dateTime durationMinutes subField conditions participantInfo",
+        select: "startTime durationMinutes subField conditions participantInfo",
       });
 
     if (!reservation) {
@@ -147,8 +147,7 @@ const updateReservation = async (req, res) => {
 
     if (changedFieldsCount > 1) {
       return res.status(400).json({
-        message:
-          "예약 수정 시 'match', 'status' 중 하나만 동시에 변경할 수 있습니다.",
+        message: "예약 수정 시 'match', 'status' 중 하나만 변경할 수 있습니다.",
       });
     }
 
