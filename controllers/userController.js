@@ -157,6 +157,8 @@ const getUserDetail = async (req, res) => {
         birth: user.birth,
         gender: user.gender,
         _id: user._id,
+        profileImageUrl: user.profileImageUrl,
+        thumbnailImageUrl: user.thumbnailImageUrl,
       },
     });
   } catch (err) {

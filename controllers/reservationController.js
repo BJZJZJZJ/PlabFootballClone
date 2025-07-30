@@ -142,6 +142,9 @@ const updateReservation = async (req, res) => {
     const oldMatchId = reservation.match;
     const oldUserId = reservation.user;
 
+    console.log(userId, matchId, status);
+    console.log(oldUserId, oldMatchId, oldStatus);
+
     if (matchId !== oldMatchId.toString()) changedFieldsCount++;
     if (status !== oldStatus) changedFieldsCount++;
 
