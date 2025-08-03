@@ -5,7 +5,7 @@
 
 이 프로젝트는 **플랩풋볼 웹사이트를 클론 코딩한 백엔드 부분**으로, 축구 경기 매칭 플랫폼의 핵심 기능을 구현합니다. 백엔드 개발자로서 **Node.js와 MongoDB 기술 스택을 학습하고 숙련하는 데 집중**했으며, 프론트엔드 개발자와의 **첫 협업 프로젝트**를 경험했습니다.
 
-[프론트엔드 Github Repository]([https://github.com/jyan-Kim/plab])
+[프론트엔드 Github Repository](https://github.com/jyan-Kim/plab)
 
 ## ✨ 주요 기능
 
